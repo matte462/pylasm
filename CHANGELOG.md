@@ -1,3 +1,16 @@
+2024-05-09 Matteo Costa <mattecosta48@gmail.com> 
+    * Inputs/: I have added some input files for testing the reading methods of InputReader class.
+
+    * global_functions.py (print_logo): Some improvement in the aesthetics of the software logo.
+
+    * globals_functions.py (clean_line): Documentation is added.
+
+    * spin_system.py (SpinSystem): Just added the documentation for all the methods implemented so far.
+
+    * input_reader.py (InputReader): Main changes regard the documentation and some new Exception to instruct the user on how to deal with eventually-incoming errors, in particular read_POSCAR() method.
+
+    * test_input_reader.py (test_read_*): New test functions are defined in such a way that the code properly behaves when provided with empty/problematic input files.
+
 2024-05-05 Matteo Costa <mattecosta48@gmail.com> 
 
 	* Inputs/: This folder includes all the input files required to run the test routines implemented so far, and some reference files for structures and magnetic interactions. 
@@ -16,4 +29,4 @@
 
     * input_reader.py (InputReader): This class takes care of reading all input files if provided with a well-defined configuration file. Only the reading and getter methods are implemented and documented.
 
-    * test_input_reader (test_read_*): These testing routines check whether the code behaves correctly when the configuration file is empty or at most contains the strictly-necessary information.
+    * test_input_reader.py (test_read_*): These testing routines check whether the code behaves correctly when the configuration file is empty or at most contains the strictly-necessary information.

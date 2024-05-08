@@ -1,10 +1,10 @@
-from global_functions import clean_line, direct2cartesian
+from global_functions import clean_line
 
 import configparser
 import ast
 import numpy as np
 
-class InputReader:
+class InputReader :
     '''
     This class implements all the necessary reading procedures 
     and provides all the parameters to the user.
@@ -12,12 +12,12 @@ class InputReader:
 
     def __init__(self,config_file: str) :
         '''
-        Initialize a new instance of InputReader 
+        Initializes a new instance of InputReader 
         and directly stores the parameters from the input files 
         into its dict attributes.
 
         Args:
-            config_file (str):   The path to the configuration file name to be read
+            config_file (str):   The path to the configuration file name to be read.
         '''
 
         self.config_file = config_file
@@ -35,7 +35,7 @@ class InputReader:
         and updates the attribute self.config_info.
 
         Args:
-            config_file (str): The path to the configuration file name to be read
+            config_file (str): The path to the configuration file name to be read.
         '''
 
         # Define permitted sections
@@ -60,7 +60,7 @@ class InputReader:
         # Raise exception if section in config_file is not allowed
         for section in config.sections() :
             if section not in allowed_sections :
-                raise ValueError(f'{section} is not a valid section name')
+                raise ValueError(f'{section} is not a valid section name.')
 
         # Set default configuration as a starting point
         for section in default_config.sections() :
@@ -77,7 +77,7 @@ class InputReader:
             if section in config.sections() :
                 for key, value in config[section].items() :
                     if key not in ref_dict[section].keys() :
-                        raise KeyError(f'{key} is not a valid {section} key')
+                        raise KeyError(f'{key} is not a valid {section} key.')
                     ref_dict[section][key] = ast.literal_eval(value)
             
         # Update the InputReader attribute
@@ -95,6 +95,11 @@ class InputReader:
         mag_ion = self.get_mag_ion()
         if mag_ion=='NOT SPECIFIED' :
             raise ValueError(f'The mag_ion value is {mag_ion} in {self.get_config_file()}.\nSo no structure is actually read.')
+        # Symbols for the elements do not contain more than 2 characters
+        # The only exceptions to this rule are the heaviest elements, but they are
+        # unlikely to be used in condensed matter physics' applications or studies. 
+        elif len(mag_ion)>2 or len(mag_ion)==0 :
+            raise ValueError(f'{mag_ion} unlikely belongs to the periodic table of elements.')
         struct_file_type = self.get_struct_file_type()
         struct_mapping = {
             'POSCAR': InputReader.read_POSCAR,
@@ -118,8 +123,9 @@ class InputReader:
         mag_ion = self.get_mag_ion()
 
         # Quantities to be read from the POSCAR file
+        # Some of them are initialized as lists since their size in unknown a-priori
         scaling = 0.0
-        lattice_vectors = []
+        lattice_vectors = np.zeros((3,3))
         elements = []
         n_per_element = []
         is_direct = False
@@ -131,40 +137,60 @@ class InputReader:
         #           - is the file empty?
         with open(struct_file_name,'r') as f :
             content = f.readlines()
+            if len(content)==0 : raise IOError(f'{struct_file_name} is empty.')
             for k in range(len(content)) :
                 # First line (k=0) is ignored
 
                 # Second line (k=1) provides the scaling factor
-                if k==1 : scaling = float(content[k])
+                if k==1 : 
+                    vector = clean_line(content[k])
+                    if len(vector)!=1 : raise ValueError(f'The content of the second line in {struct_file_name} differs from what is expected.')
+                    scaling = ast.literal_eval(content[k])
+                    if type(scaling)!=float : raise TypeError('The type of the scaling variable differs from what is expected.')
 
                 # Third/Fourth/Fifth lines (k=2/3/4) provide the lattice vectors
                 if k==2 or k==3 or k==4 : 
                     vector = clean_line(content[k])
-                    vector = [float(el) for el in vector]
-                    lattice_vectors.append(vector)
+                    if len(vector)!=3 : raise ValueError(f'The content of the {k+1}-th line in {struct_file_name} differs from what is expected.')
+                    for el in vector :
+                        el = ast.literal_eval(el)
+                        if type(el)!=float : raise TypeError(f'The type of {el} in the {k+1}-th lattice vectors differs from what is expected.')
+                    lattice_vectors[k-2] = np.array(vector)
 
                 # Sixth line (k=5) provides a list of the elements in the system
                 if k==5 :
                     vector = clean_line(content[k])
-                    vector[-1].replace('\n','')
-                    for el in vector : elements.append(el)
+                    for el in vector : 
+                        # Same exception is raised for the mag_ion variable in the method read_struct_file()
+                        if len(el)>2 or len(el)==0 : raise ValueError(f'{el} unlikely belongs to te periodic table of elements.')
+                        else : elements.append(el)
                 
                 # Seventh line (k=6) provides how many atoms per element in the previous list there are
                 if k==6 : 
                     vector = clean_line(content[k])
-                    for el in vector : n_per_element.append(int(el))
+                    if len(vector)!=len(elements) : raise ValueError(f'The content of the {k+1}-th line in {struct_file_name} differs from what is expected.')
+                    for el in vector : 
+                        el = ast.literal_eval(el)
+                        if type(el)!=int : raise TypeError(f'The type of the {el} in {k+1}-th line in {struct_file_name} differs from what is expected.')
+                        else : n_per_element.append(el)
                 
                 # Eighth line (k=7) provides info about whether Selective dynamics were set or not:
                 # if yes --> content[k]='Selective dynamics' and the rest of the file is shifted down by one line
                 # if no  --> content[k]='Direct' or 'Cartesian'
-                if k==7 and content[k].count('S')!=0 : is_selective = True
+                if k==7 and content[k].count('S')!=0 : 
+                    vector = clean_line(content[k])
+                    if len(vector)>2 or len(vector)==0 : raise ValueError(f'The content of the {k+1}-th line in {struct_file_name} differs from what is expected.')
+                    is_selective = True
                 
                 # Eighth/Nineth line (k=7/8) provides info about the chosen coordinate system
                 # Important to know for properly reading the sites of the magnetic ions 
                 if (k==7 or k==8) and content[k].count('D')!=0 : # D stands for Direct (coordinate system for atomic positions)
+                    vector = clean_line(content[k])
+                    if len(vector)!=1 : raise ValueError(f'The content of the {k+1}-th line in {struct_file_name} differs from what is expected.')
                     is_direct = True
             
-            lattice_vectors = [np.dot(vec,scaling) for vec in lattice_vectors]
+            lattice_vectors = np.multiply(lattice_vectors,scaling)
+            if elements.count(mag_ion)==0 : raise ValueError(f'No {mag_ion} atoms are found in {struct_file_name}.')
             
             # Loop over the following lines to capture the sites
             # The total number of sites should coincide with the sum of all elements in n_per_element
@@ -183,21 +209,23 @@ class InputReader:
                 if mag_ion==elements[i] :
                     for k in range(starting_row+n_cumulated,starting_row+n_cumulated+n_per_element[i+1]) :
                         vector = clean_line(content[k])
+                        if len(vector)<3 : raise ValueError(f'The content of the {k+1}-th line in {struct_file_name} differs from what is expected.')
 
-                        # Selective dynamics requires the user to put 
-                        # 3 boolean values at the end of each line
-                        # So they should be removed
-                        if is_selective==True :
-                            for i in range(3) : vector.remove(vector[-1])
-                        
-                        vector = [float(el) for el in vector]
-                        mag_ions_pos.append(vector)
+                        # Removing last elements until the first 3 remain allows to deal with the Selective dynamics case
+                        # and eventually the presence of comments at the end of each line simultaneously 
+                        while len(vector)>3 : vector.remove(vector[-1])
+
+                        for el in vector :
+                            el = ast.literal_eval(el)
+                            if type(el)!=float : raise TypeError(f'The type of {el} in the {k+1}-th line in {struct_file_name} differs from what is expected.')
+                        mag_ions_pos.append(np.array(vector))
+            mag_ions_pos = np.array(mag_ions_pos)
             
             # Cartesian coordinate system is better than Direct one
             # So in case trasform one to the other
-            if is_direct==True : mag_ions_pos = direct2cartesian(mag_ions_pos,lattice_vectors)
+            if is_direct==True : mag_ions_pos = np.dot(mag_ions_pos,lattice_vectors)
             n_per_element.remove(0)
-        return lattice_vectors, mag_ions_pos
+            return lattice_vectors, mag_ions_pos
     
     def read_STRUCT(self) -> tuple : # STILL TO BE IMPLEMENTED
         pass
@@ -269,3 +297,6 @@ class InputReader:
 
     def print_summary(self) : # STILL TO BE IMPLEMENTED
         pass
+
+
+print(type(np.array([1,2,3]).any))

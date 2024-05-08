@@ -2,35 +2,42 @@ import numpy as np
 from spin_system import SpinSystem
 
 # Some useful global functions
+def print_logo() -> None :
+    '''
+    Prints the software's logo, to use at the beginning.
+    '''
 
-def print_logo():
-    print('##############################################################')
-    print(' \    __________  ______       __        _________   ___    / ')
-    print('  \   |*|  || \*\/*/ |*|      /**\      /**___)|**\ /**|   /  ')
-    print('  /   |*|__||  \**/  |*|__   /____\    |__**|  |*|*V*|*|   \  ')
-    print(' /    |_|      |__|  |____| /_/  \_\ (_____/   |_|   |_|    \ ')
-    print('##############################################################')
+    print("###############################################################")
+    print(r" \    __________  ___",end=" ")
+    print("\033[91m___       __        _________   ___\033[00m",end=" ")
+    print("   / ")
+    print(r"  \   |*|  || \*\/*/ ",end=" ")
+    print("\033[91m|*|      /**"+r"\ "+"     /**___)|**"+r"\ "+"/**|\033[00m",end=" ")
+    print("  /  ")
+    print(r"  /   |*|__||  \**/  ",end=" ")
+    print("\033[91m|*|__   /____"+r"\ "+"   |__**|  |*|*V*|*|\033[00m",end=" ")
+    print(r"  \  ")
+    print(r" /    |_|      |__|  ",end=" ")
+    print("\033[91m|____| /_/  "+r"\_"+r"\ "+"(_____/   |_|   |_|\033[00m",end=" ")
+    print(r"   \ ")
+    print("###############################################################")
 
-def direct2cartesian(atoms_positions,lattice_vectors) :
-    new_atoms_positions = []
-    a = np.array(lattice_vectors[0])
-    b = np.array(lattice_vectors[1]) 
-    c = np.array(lattice_vectors[2])
-    for i in range(len(atoms_positions)) :
-        ith_proj_a = np.dot(a,atoms_positions[i][0]) 
-        ith_proj_b = np.dot(b,atoms_positions[i][1])
-        ith_proj_c = np.dot(c,atoms_positions[i][2])
-        ith_new_position = ith_proj_a+ith_proj_b+ith_proj_c
-        new_atoms_positions.append(ith_new_position)
-    return new_atoms_positions
+def clean_line(raw_line: str) -> list :
+    '''
+    Removes all the empty spaces and the newline character, useful when reading text files.
 
-def clean_line(raw_line) :
-    line = raw_line.split(sep=' ')
-    line[-1] = line[-1].replace('\n','')
-    empty_counts = line.count('')
-    for c in range(empty_counts) :
-        line.remove('')
-    return line
+    Args:
+        raw_line (str): String containing the info to be extracted.
+    '''
+    line_content = raw_line.split(sep=' ')
+
+    # Last element may include the newline character
+    # So replace it with an empty character to be removed later
+    line_content[-1] = line_content[-1].replace('\n','')
+    empty_counts = line_content.count('')
+    for c in range(empty_counts) : line_content.remove('')
+
+    return line_content
 
 def solve_by_lanczos(system: SpinSystem,hamiltonian: 'np.ndarray',lanczos_mode: str,lanczos_par: int) :
     lanczos_mapping = {
@@ -40,7 +47,6 @@ def solve_by_lanczos(system: SpinSystem,hamiltonian: 'np.ndarray',lanczos_mode: 
     label = 'One-shot'*(lanczos_mode=='one_shot')+'SCF'*(lanczos_mode=='scf')
     print(f'\n{label} Lanczos Algorithm for Exact Diagonalization')
     results = lanczos_mapping[lanczos_mode](system,hamiltonian,lanczos_par)
-    print('something',results)
     return results
 
 def one_shot_lanczos_solver(system: SpinSystem,hamiltonian: 'np.ndarray',n_iterations: int) -> float :

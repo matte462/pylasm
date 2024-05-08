@@ -22,7 +22,7 @@ def main() :
     J_couplings = reader.get_J_couplings()
     NN_vectors = reader.get_NN_vectors()
     max_NN_shell = reader.get_max_NN_shell()
-    hamiltonian = system.get_hamiltonian(J_couplings,NN_vectors,max_NN_shell)
+    hamiltonian = system.build_hamiltonian(J_couplings,NN_vectors,max_NN_shell)
     
     np.random.seed(187)
     lanczos_mode = reader.get_lanczos_mode()
