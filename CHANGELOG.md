@@ -1,4 +1,17 @@
+2024-05-20 Matteo Costa <mattecosta48@gmail.com>
+
+    * Inputs/: I have added some input files for testing the reading methods of InputReader class.
+
+    * global_functions.py (is_spin_acceptable): New function to handle Exceptions about the choice of spin value.
+
+    * input_reader.py (InputReader): I have introduced new Exceptions to be raised for an appropriate choice of the values of the numerical input variables (e.g. spin, max_NN_shell, n_iterations, energy_digits) and also implemented a new method to read the values in the POSCAR file. In order to pass the testing unctions successfully, I had to remove ast.literal_eval and exploit str.isdigit instead. A new method to read the J couplings file is implemented, but still needs a proper documentation and some test functions.
+
+    * test_input_reader.py (test_read_*): New test functions are defined to check the correctness of read_config_file and  read_POSCAR methods of InputReader class.
+
+    * test_global_functions.py (test_clean_line_* & test_is_spin_acceptable_*): Some basic test functions are defined to check the correctness of clean_line and is_spin_acceptable functions in some limit cases. 
+
 2024-05-09 Matteo Costa <mattecosta48@gmail.com> 
+
     * Inputs/: I have added some input files for testing the reading methods of InputReader class.
 
     * global_functions.py (print_logo): Some improvement in the aesthetics of the software logo.

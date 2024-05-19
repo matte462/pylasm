@@ -16,8 +16,7 @@ class SpinSystem() :
             latt_vecs (np.ndarray): Set of 3 lattice vectors defining the periodic boundary conditions;
             sites (np.ndarray): Finite set of atomic positions of the spins in the system;
             spin (float): Spin quantum number.
-        '''
-        
+        ''' 
         self.latt_vecs = latt_vecs
         self.sites = sites
         self.spin = spin
@@ -114,7 +113,6 @@ class SpinSystem() :
         one of the 1-spin Hilbert space (d) by
                 D = d**N
         '''
-
         Nspins = self.get_Nspins()
         spin_mult = self.get_spin_mult()
         dim = spin_mult**Nspins

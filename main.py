@@ -9,7 +9,7 @@ def main() :
     print_logo()
 
     # Read all input files
-    reader = InputReader('./Inputs/Tests/config_file_1.ini')
+    reader = InputReader('init_config.ini')
     reader.print_summary()
     
     # Initialize the spin system
