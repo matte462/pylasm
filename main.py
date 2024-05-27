@@ -20,9 +20,9 @@ def main() :
     
     # Build the associated Hamiltonian matrix
     J_couplings = reader.get_J_couplings()
-    NN_vectors = reader.get_NN_vectors()
+    T_vectors = reader.get_T_vectors()
     max_NN_shell = reader.get_max_NN_shell()
-    hamiltonian = system.build_hamiltonian(J_couplings,NN_vectors,max_NN_shell)
+    hamiltonian = system.build_hamiltonian(J_couplings,T_vectors,max_NN_shell)
     
     np.random.seed(187)
     lanczos_mode = reader.get_lanczos_mode()

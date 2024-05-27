@@ -170,11 +170,10 @@ class InputReader :
                     if len(vector)!=3 :
                         raise ValueError(f'The content of the {k+1}-th line in {struct_file_name} differs from what is expected.')
                     for el in vector :
-                        if el.replace('.','').isdigit() : 
-                            el = float(el)
-                        else :
+                        el_tmp = el.replace('.','').replace('-','')
+                        if not el_tmp.isdigit() :
                             raise TypeError(f'{el} is read in the {k+1}-th line of {struct_file_name}, while a lattice vector is expected.')
-                    lattice_vectors[k-2] = np.array(vector)
+                    lattice_vectors[k-2] = np.array([float(el) for el in vector])
 
                 # Sixth line (k=5) provides a list of the elements in the system
                 if k==5 :
@@ -189,12 +188,11 @@ class InputReader :
                 if k==6 : 
                     if len(vector)!=len(elements) :
                         raise ValueError(f'The content of the {k+1}-th line in {struct_file_name} differs from what is expected.')
-                    for el in vector : 
-                        if el.isdigit() :
-                            el = int(el)
-                            n_per_element.append(el)
-                        else :
+                    for el in vector :
+                        el_tmp = el.replace('.','').replace('-','')
+                        if not el_tmp.isdigit() :
                             raise TypeError(f'{el} is read in {k+1}-th line in {struct_file_name}, while a positive integer is expected.') 
+                        n_per_element.append(int(el))
                 
                 # Eighth line (k=7) provides info about whether Selective dynamics were set or not:
                 # if yes    --> the first non-empty character in content[k] is either 'S' or 's'
@@ -247,11 +245,10 @@ class InputReader :
                             vector.remove(vector[-1])
 
                         for el in vector :
-                            if el.replace('.','').isdigit() :
-                                el = float(el)
-                            else :
+                            el_tmp = el.replace('.','').replace('-','')
+                            if not el_tmp.isdigit() :
                                 raise TypeError(f'{el} is read in the {k+1}-th line in {struct_file_name}, while a coordinate is expected.')
-                        mag_ions_pos[k-starting_row-n_cumulated] = np.array(vector)
+                        mag_ions_pos[k-starting_row-n_cumulated] = np.array([float(el) for el in vector])
             mag_ions_pos = np.array(mag_ions_pos)
             
             # Cartesian coordinate system is better than Direct one
@@ -271,87 +268,146 @@ class InputReader :
         pass
 
     def read_J_couplings_file(self) -> None :
+        '''
+        Reads the content of J couplings file specified in the configuration file, following 
+        the standard format conventions of MagInt output file. Also updates the Js_info attribute
+        accordingly.
+
+        Note:
+            Only Dipole-Dipole interactions are actually taken into account, so we ofter assume to
+            deal with 3x3 square matrices.
+        '''
         J_couplings_file = self.get_J_couplings_file()
-        if J_couplings_file!='NOT SPECIFIED' :
-            # Reading procedure ...
-            Js_info = {}
-
-            magint_matrices = []
-            T_vectors = []
-            distances = []
-            involved_atoms = []
-            shells = []
-            coor_nums = []
-            with open(J_couplings_file,'r') as Vf :
-                content = Vf.readlines()
-                for k in range(len(content)) :
-                    if content[k].find('INTERACTION')!=-1 :
-                        how_many_matrices = len(magint_matrices)
-                        cleaned_line = clean_line(content[k])
-                        cleaned_line.remove('-----INTERACTION:')
-                        cleaned_line = cleaned_line[0]+cleaned_line[1]+cleaned_line[2] 
-                        involved_atoms.append([cleaned_line,how_many_matrices])
-                    if content[k].find('Shell=')!=-1 :
-                        cleaned_line = content[k].replace('Shell=','')
-                        shells.append(int(cleaned_line))
-                    if content[k].find('Coor_num')!=-1 :
-                        cleaned_line = clean_line(content[k])
-                        cleaned_line.remove('Coor_num')
-                        cleaned_line.remove('=')
-                        coor_nums.append(int(cleaned_line[0]))
-                    if content[k].find('Dipole-Dipole interactions')!=-1 and k+2<len(content) :
-                        if content[k+2].find('interactions')==-1 and content[k+2].find('INTERACTION')==-1 :
-                            for i in range(coor_nums[-1]) :
-                                vector = clean_line(content[k+3+8*i])
-                                if len(vector)>1 and vector[0]=='T' :
-                                    vector.remove('T')
-                                    vector.remove('=')
-                                    vector[0] = vector[0].replace('[','')
-                                    vector[-1] = vector[-1].replace(']','')
-                                    vector[-1] = vector[-1].replace('\n','')
-                                    if vector.count('\n')!=0 : vector.remove('\n')
-                                    if vector.count('')!=0 : 
-                                        for n in range(vector.count('')) : vector.remove('')
-                                    T_vectors.append([float(el) for el in vector])
-                                    vector = [float(el)**2 for el in vector]
-                                    distance = np.sqrt(np.array(vector).sum())
-                                    distances.append(distance)
-
-                                    matrix = []
-                                    n_rows = 3
-                                    for n in range(n_rows) :
-                                        row = clean_line(content[k+6+8*i+n])
-                                        row.remove(row[0])
-                                        #row.remove('\n')
-                                        row = [float(el) for el in row]
-                                        matrix.append(row)
-                                    magint_matrices.append(matrix)
-                sorted_indices = sorted(range(len(distances)), key=lambda k: distances[k])
-                distances = [round(distances[i],3) for i in sorted_indices]
-                T_vectors = [np.array(T_vectors[i]) for i in sorted_indices]
-                magint_matrices = [np.mat(magint_matrices[i]) for i in sorted_indices]
-
-                #j = 0
-                NN_index = 0
-                shell_count = 0
-                #for i in range(1,max_NN_shell+1) :
-                aux_magint_dict = {}
-                aux_J_matrices = {}
-                aux_T_vectors = {}
-                for j in range(1,len(distances)) :
-                    if distances[j-1]!=distances[j] : NN_index=0
-                    aux_T_vectors[f'{NN_index}'] = [round(el,3) for el in np.dot(T_vectors[j-1],0.529177249)]
-                    aux_J_matrices[f'{NN_index}'] = magint_matrices[j-1]
-                    if NN_index==0 : 
-                        aux_magint_dict['NN_shell_radius'] = distances[j-1]
-                        aux_magint_dict['T_vectors'] = aux_T_vectors
-                        aux_magint_dict['J_matrices'] = aux_J_matrices
-                        shell_count += 1
-                        Js_info[f'{shell_count}° NN shell'] = aux_magint_dict
-                    NN_index += 1
-                self.Js_info = Js_info
-        else :
+        if J_couplings_file=='NOT SPECIFIED' :
             raise ValueError(f'The J_couplings_file value is {J_couplings_file} in {self.get_config_file()}.\nSo no interaction matrices are actually read.')
+
+        Js_info = {}
+        magint_matrices = []
+        T_vectors = []
+        distances = []
+        coor_nums = []
+        with open(J_couplings_file,'r') as Vf :
+            content = Vf.readlines()
+            if len(content)==0 :
+                raise IOError(f'{J_couplings_file} is empty.')
+            
+            for k in range(len(content)) :
+                    
+                # Coor_num gives the number of interaction matrices to be read per each shell
+                # Expected string: ' Coor_num = 3' 
+                if content[k].find('Coor_num')!=-1 :
+                    vector = clean_line(content[k])
+                    if len(vector)!=3 :
+                        raise IOError(f'The {k+1}-th line in {J_couplings_file} is longer/shorter than expected.')
+                    if vector[0]!='Coor_num' or not vector[2].isdigit() :
+                        raise ValueError(f'The {k+1}-th line in {J_couplings_file} does not provide the coordination number as expected.')
+                    coor_nums.append(int(vector[2]))
+
+                # Only Dipole-Dipole interaction matrices are to be read
+                if content[k].find('Dipole-Dipole interactions')!=-1 and k+2<len(content) :
+
+                    # The fastest way to make sure the D-D section is empty is to check whether the second row
+                    # after the string 'Dipole-Dipole interactions':
+                    # 1) is after the end of file
+                    # 2) includes the word 'interactions' or 'INTERACTION'
+                    if content[k+2].find('interactions')==-1 and content[k+2].find('INTERACTION')==-1 :
+
+                        # Loop over the next rows
+                        # The n° of interaction matrices in the current NN shell should coincide with the last integer in coor_nums
+                        # Otherwise the matrix is filled with zeros
+                        for i in range(coor_nums[-1]) :
+                            current_row = k+3+8*i
+                            if current_row>len(content)-1 :
+                                raise IOError(f'End of {J_couplings_file} is reached before all T vectors and J matrices could be read.')
+                            vector = clean_line(content[current_row])
+
+                            # Expected format 'T = [1.0 0.0 2.5]\n' or 'T = [1.0 0.0 2.5] \n' or 'T = [1.0 0.0 2.5 ] \n'
+                            if len(vector)==0 or vector[0]!='T' :
+                                raise ValueError(f'The {current_row+1}-th line in {J_couplings_file} does not include a T vector.')
+                            if len(vector)>1 and vector[0]=='T' :
+
+                                # Remove useless info
+                                vector.remove('T')
+                                vector.remove('=')
+                                if vector.count('\n')==1 : vector.remove('\n')
+                                if vector.count(']')==1 : vector.remove(']')
+                                if vector.count(']\n')==1 : vector.remove(']\n')
+                                vector[0] = vector[0].replace('[','')
+                                vector[-1] = vector[-1].replace(']','')
+                                vector[-1] = vector[-1].replace(']\n','')
+                                
+                                # Save the current T vector
+                                for el in vector :
+                                    el_tmp = el.replace('.','').replace('-','')
+                                    if not el_tmp.isdigit() :
+                                        raise TypeError(f'{el} is read in the {current_row+1}-th line in {J_couplings_file}, while a coordinate is expected.')
+                                
+                                # Rescale T vectors into Angstrom units of length
+                                vector = np.dot(np.array([float(el) for el in vector]),0.529177249)
+                                T_vectors.append(vector)
+
+                                # Save the length of the current T vector
+                                squares = [el**2 for el in vector]
+                                norm = np.sqrt(np.array(squares).sum())
+                                distances.append(norm)
+
+                                # Read the associated 3x3 interaction matrix
+                                n_rows = 3
+                                matrix = np.zeros((n_rows,n_rows))
+                                for n in range(n_rows) :
+
+                                    # Expected format '  y 0.33 0.22 0.11'
+                                    row = clean_line(content[current_row+3+n])
+                                    row.remove(row[0])
+                                    if len(row)!=3 :
+                                        raise ValueError(f'The content of {current_row+3+n+1}-th line in {J_couplings_file} differs from what is expected.')
+                                    for j in range(len(row)) :
+                                        if row[j].replace('.','').isdigit() :
+                                            matrix[n][j] = float(row[j])
+                                        else :
+                                            raise TypeError(f'{row[j]} is read in the {current_row+3+n+1}-th line in {J_couplings_file}, while a J coupling constant is expected.')
+                                            
+                                # Save the interaction matrix after readjusting the order of rows and columns
+                                matrix = adapt_magintmatrix(matrix)
+                                magint_matrices.append(matrix)
+                
+            # Sort T vectors and J matrices in increasing order of distance
+            sorted_indices = sorted(range(len(distances)), key=lambda k: distances[k])
+            distances = [round(distances[i],3) for i in sorted_indices]
+            T_vectors = [T_vectors[i] for i in sorted_indices]
+            magint_matrices = [magint_matrices[i] for i in sorted_indices]
+
+            # Collect the T vectors and the associated J matrices into auxiliary dictionaries 
+            # to finally update self.Js_info attribute 
+            NN_index = 0
+            shell_count = 0
+            aux_magint_dict = {}
+            aux_J_matrices = {}
+            aux_T_vectors = {}
+
+            # Note that distances, T_vectors & magint_matrices have the same length by construction
+            # Each NN shell may contain one or more T vectors (& thus J matrices) 
+            # as long as they are associated roughly with the same distance
+            last_distance = distances[-1]
+            distances.insert(len(distances),last_distance)
+            for j in range(1,len(distances)) :
+
+                # Reset NN_index to the initial value when the NN shell distance changes
+                if distances[j-1]!=distances[j] : NN_index=0
+                
+                aux_T_vectors[f'{NN_index}'] = [round(el,3) for el in T_vectors[j-1]]
+                aux_J_matrices[f'{NN_index}'] = magint_matrices[j-1]
+
+                # When NN_index is reset to 0, the last bond in the current shell is being stored
+                # since we always work with the (j-1)-th element in the lists
+                if NN_index==0 :
+                    aux_magint_dict['NN_shell_radius'] = distances[j-1]
+                    aux_magint_dict['T_vectors'] = aux_T_vectors
+                    aux_magint_dict['J_matrices'] = aux_J_matrices
+                    shell_count += 1
+                    Js_info[f'{shell_count}° NN shell'] = aux_magint_dict
+                NN_index += 1
+            self.Js_info = Js_info
 
     # Getters methods
     def get_config_file(self) -> str :
@@ -447,11 +503,63 @@ class InputReader :
         '''
         return self.struct_info['mag_ions_pos']
     
-    def get_J_couplings(self) -> 'np.ndarray' : # STILL TO BE IMPLEMENTED
-        pass
+    def get_J_couplings(self) -> list :
+        '''
+        Returns a list of the interaction matrices stored in the Js_info after the reading procedure.
+        Each element in the list contains all the interaction matrices of the corresponding NN shell.
+        '''
+        Js = self.Js_info
+        matrices = []
+        for section in Js.keys() :
+                matrices.append([])
+                for mat in Js[section]['J_matrices'].values() :
+                    matrices[-1].append(mat)
+        return matrices
 
-    def get_NN_vectors(self) -> 'np.ndarray' : # STILL TO BE IMPLEMENTED
-        pass
+    def get_T_vectors(self) -> list :
+        '''
+        Returns a list of the T vectors connecting NN atoms. They are organized in groups for each NN shell
+        and  their order cannot be changed since they are in a 1-1 mapping with the interaction matrices 
+        given by the get_J_couplings() method. 
+        '''
+        Js = self.Js_info
+        vectors = []
+        for section in Js.keys() :
+                vectors.append([])
+                for vec in Js[section]['T_vectors'].values() :
+                    vectors[-1].append(vec)
+        return vectors
 
-    def print_summary(self) : # STILL TO BE IMPLEMENTED
-        pass
+    def print_summary(self) -> None :
+        '''
+        Prints a summary of all the quantities that have been read during the construction 
+        of the current InputReader instance in order to help the user to have a better 
+        understanding of the settings and/or the values in use.
+        '''
+        config = self.config_info
+        struct = self.struct_info
+        Js = self.Js_info
+
+        print(f'\nInput parameters from {self.config_file}:')
+        for section in config.keys() :
+            print(f'\n[{section}]\n')
+            for key, value in config[section].items() :
+                print(f'{key} = {value}')
+        
+        print(f'\nStructural information from {self.get_struct_file_name()}:')
+        for key, value in struct.items() :
+            print(f'\n[{key}]')
+            for i in range(len(value)) :
+                print(f'{i}: {value[i]}')
+        
+        J_couplings_file = self.get_J_couplings_file()
+        print(f'\nMagnetic interactions from {J_couplings_file}')
+        for section in Js.keys() :
+            print(f'\n[{section}]')
+            for key, value in Js[section].items() :
+                if type(value)==float :
+                    print(f'{key}: {value}')
+                elif type(value)==dict :
+                    for k, v in value.items() :
+                        aux_key = 'T_vector'*(key=='T_vectors')+'J_matrix'*(key=='J_matrices')
+                        print(f'{aux_key} {k}: \n{v}')
