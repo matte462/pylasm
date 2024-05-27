@@ -14,14 +14,14 @@ def test_read_config_file_0() -> None :
     default_settings['SYSTEM'] = {'struct_file_name': 'NOT SPECIFIED','struct_file_type': 'POSCAR','mag_ion': 'NOT SPECIFIED','spin': 0.5,'J_couplings_file': 'NOT SPECIFIED','max_NN_shell': 1}
     default_settings['LANCZOS'] = {'lanczos_mode': 'scf','n_iterations': 20,'energy_digits': 6}
 
-    # The values of struct_file_name, mag_ion, J_couplings_file keys still need to be fixed
-    default_settings['SYSTEM']['struct_file_name'] = './Inputs/StructureFiles/POSCAR_Ce_2x1x1.vasp'
-    default_settings['SYSTEM']['mag_ion'] = 'Ce'
-    default_settings['SYSTEM']['J_couplings_file'] = './Inputs/MagIntFiles/V_Mult_Ce0-Ce0_1NN_chain.dat'
-
     # Effective configuration to be tested
     reader = InputReader('./Inputs/TestFiles/config_file_3.ini')
     read_settings = reader.get_config_info()
+
+    # The values of struct_file_name, mag_ion, J_couplings_file keys still need to be fixed
+    default_settings['SYSTEM']['struct_file_name'] = './Inputs/TestFiles/POSCAR_test_2.vasp'
+    default_settings['SYSTEM']['mag_ion'] = 'Ag'
+    default_settings['SYSTEM']['J_couplings_file'] = './Inputs/TestFiles/V_Mult_1.dat'
     assert read_settings==default_settings
 
 def test_read_config_file_1() -> None :
@@ -76,6 +76,10 @@ def test_read_config_file_7() -> None :
     Tests that the code properly reads the configuration file in a standard situation
     when all keys are specified.
     '''
+    # Effective configuration to be tested
+    reader = InputReader('./Inputs/TestFiles/config_file_14.ini')
+    read_settings = reader.get_config_info()
+
     # Expected configuration
     exp_settings = {}
     exp_settings['SYSTEM'] = {
@@ -83,7 +87,7 @@ def test_read_config_file_7() -> None :
         'struct_file_type': 'POSCAR',
         'mag_ion': 'Ag',
         'spin': 1.5,
-        'J_couplings_file': './Inputs/MagIntFiles/V_Mult_Ce0-Ce0_1NN_chain.dat',
+        'J_couplings_file': './Inputs/TestFiles/V_Mult_1.dat',
         'max_NN_shell': 2
     }
     exp_settings['LANCZOS'] = {
@@ -92,9 +96,6 @@ def test_read_config_file_7() -> None :
         'energy_digits': 8
     }
 
-    # Effective configuration to be tested
-    reader = InputReader('./Inputs/TestFiles/config_file_14.ini')
-    read_settings = reader.get_config_info()
     assert read_settings==exp_settings
 
 def test_read_struct_file_0() -> None :
@@ -249,3 +250,54 @@ def test_read_J_couplings_file_0() -> None :
     with pytest.raises(ValueError, match='The J_couplings_file value is NOT SPECIFIED in ./Inputs/TestFiles/config_file_2.ini.\nSo no interaction matrices are actually read.') : 
         reader = InputReader('./Inputs/TestFiles/config_file_2.ini')
 
+def test_read_J_couplings_file_1() -> None :
+    '''
+    Tests that the proper Exception is raised when the J coupling file is actually empty.
+    '''
+    with pytest.raises(IOError, match='./Inputs/TestFiles/V_Mult_0.dat is empty.') :
+        reader = InputReader('./Inputs/TestFiles/config_file_22.ini')
+
+def test_read_J_couplings_file_2() -> None :
+    '''
+    Tests that the reading method correctly stores the interaction matrices and the T vectors
+    written into a basic J_couplings_file.
+    '''
+    reader = InputReader('./Inputs/TestFiles/config_file_3.ini')
+    Js_info = reader.get_Js_info()
+    J_matrices = reader.get_J_couplings()
+    T_vectors = reader.get_T_vectors()
+    assert len(J_matrices)==1
+    assert len(T_vectors)==1
+    assert len(J_matrices[0])==2
+    assert len(T_vectors[0])==2
+
+    exp_Tvec1 = np.array([1.0,0.0,0.0])
+    exp_Tvec2 = np.array([-1.0,0.0,0.0])
+
+    are_Jmats_ok = True
+    for mat in J_matrices[0] :
+        for i in range(3) :
+            for j in range(3) :
+                are_Jmats_ok = are_Jmats_ok and (mat[i][j]==1.0*(i==j))
+    
+    are_Tvecs_ok = True
+    are_Tvecs_ok = are_Tvecs_ok and np.array(exp_Tvec1==T_vectors[0][0]).all()
+    are_Tvecs_ok = are_Tvecs_ok and np.array(exp_Tvec2==T_vectors[0][1]).all()
+    assert are_Jmats_ok and are_Tvecs_ok
+
+def test_read_J_couplings_file_3() -> None :
+    '''
+    Tests that the proper Exception is raised when the number of T vectors or J matrices per shell
+    differs from the declared coordination number. 
+    '''
+    with pytest.raises(ValueError, match='The 19-th line in ./Inputs/TestFiles/V_Mult_2.dat does not include a T vector.') :
+        reader = InputReader('./Inputs/TestFiles/config_file_23.ini')
+
+def test_read_J_couplings_file_4() -> None :
+    '''
+    Tests that the proper Exception is raised when the number of T vectors or J matrices per shell
+    differs from the declared coordination number, but the end of file is reached before
+    finishing the reading procedure. 
+    '''
+    with pytest.raises(IOError, match='End of ./Inputs/TestFiles/V_Mult_3.dat is reached before all T vectors and J matrices could be read.') :
+        reader = InputReader('./Inputs/TestFiles/config_file_24.ini')

@@ -1,4 +1,5 @@
 from global_functions import *
+import pytest
 
 def test_clean_line_0() -> None :
     '''
@@ -51,3 +52,29 @@ def test_is_spin_acceptable_3() -> None :
     which is neither integer nor half-integer.
     '''
     assert is_spin_acceptable(0.7)==False
+
+def test_adapt_magintmatrix_0() -> None :
+    '''
+    Tests that the proper Exception is raised when the adapt_magintmatrix() function is provided with 
+    a matrix whose shape is not (3,3).
+    '''
+    with pytest.raises(ValueError, match='The adapt_magintmatrix function only accepts 3x3 square matrices as argument.') :
+        new_matrix = adapt_magintmatrix(np.array([[1.0]]))
+
+def test_adapt_magintmatrix_1() -> None :
+    '''
+    Tests that the  adapt_magintmatrix() function returns the correct transformed matrix when provided with 
+    a 3x3 matrix in the most general form.
+    '''
+    matrix = np.array([[1.0,2.0,3.0],
+                       [4.0,5.0,6.0],
+                       [7.0,8.0,9.0]])
+    exp_matrix = np.array([[9.0,7.0,8.0],
+                           [3.0,1.0,2.0],
+                           [6.0,4.0,5.0]])
+    new_matrix = adapt_magintmatrix(matrix)
+
+    is_new_matrix_ok = True
+    for r in range(new_matrix.shape[0]) :
+        is_new_matrix_ok = is_new_matrix_ok and np.array(exp_matrix[r]==new_matrix[r]).all()
+    assert is_new_matrix_ok==True
