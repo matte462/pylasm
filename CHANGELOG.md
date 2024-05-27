@@ -1,3 +1,21 @@
+2024-05-27 Matteo Costa <mattecosta48@gmail.com>
+
+    * Inputs/: I have added some input files for testing the read_J_couplings() method of InputReader class.
+
+    * global_functions.py (is_spin_acceptable): Improvements in the documentation.
+
+    * global_functions.py (adapt_magintmatrix): I have defined a new function that implements a specific transformation to the Dipole-Dipole interaction matrices read in the J_couplings_file. Some documentation is also included.
+
+    * input_reader.py (read_J_couplings_file): The method has been documented and properly modified in order to improve Exceptions' handling and to fix some bugs encountered during the testing phase.
+
+    * input_reader.py (get_J_couplings & get_T_vectors): New getter methods are implemented to help the user to extract all the necessary info from the InputReader instance.
+
+    * input_reader.py (print_summary): This method makes the user aware of what the Input Reader instance has been able to read from all the input files.
+
+    * test_input_reader.py (test_read_J_couplings_file_*): I have added some testing function to make sure the read_J_couplings_file() method works correctly.
+
+    * test_global_functions.py (test_adapt_magintmatrix_*): I have added some testing functions to check whether the implementation of adapt_magintmatrix() follows the expectations in the most general case.
+
 2024-05-20 Matteo Costa <mattecosta48@gmail.com>
 
     * Inputs/: I have added some input files for testing the reading methods of InputReader class.
