@@ -1,3 +1,19 @@
+2024-06-02 Matteo Costa <mattecosta48@gmail.com>
+
+    * global_functions.py: Some modifications in the way I import the SpinSystem class due to an incoming circular import error for the spin_system module.
+
+    * input_reader.py (read_J_couplings_file): Just a small modification to the reading method to account for a possible string format for the T_vectors, as a consequence to a failed test.
+
+    * spin_system.py (__init__): I have introduced some ValueError excpeptions to be raised when the SpinSystem instance does not follow the instructions precisely.
+
+    * spin_system.py (find_NN_shell): I have implemented and documented a method for identifying the spin indices belonging to the chosen NN shell of the reference spin and the associated connecting vectors in Angstrom units. It only explore the 26 unit cells which are strictly adjacent to the one of interest. So one could think about a better implementation, but the present solution should be largely sufficient to the purpose of the code.
+
+    * spin_system.py (build_spin_operator): This method computes the spin vector operator associated with all the sites in the system. The implementation is quite general, so it should work for most of the permitted spin quantum numbers.
+
+    * spin_system.py (build_hamiltonian): I have implemented a method to calculate the hamiltonian matrix of the SpinSystem instance once the J tensors, the NN vectors and the maximum NN shell are given. It makes use of the previous methods (find_NN_shell & build_spin_operator) and several methods from NumPy library. Periodic boundary conditions, tensor products and anisotropic interaction terms should have been taken into account correctly, but still the method requires some test routines. 
+
+    * test_spin_system.py (test_*): Some basic test functions are intended to check whether the SpinSystem constructor and its methods behave as expected for them. Still other testing functions for find_NN_shell are needed since only limit cases have been considered so far.
+
 2024-05-27 Matteo Costa <mattecosta48@gmail.com>
 
     * Inputs/: I have added some input files for testing the read_J_couplings() method of InputReader class.
