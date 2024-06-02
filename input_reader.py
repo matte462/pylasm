@@ -329,6 +329,7 @@ class InputReader :
                                 # Remove useless info
                                 vector.remove('T')
                                 vector.remove('=')
+                                if vector.count('[')==1 : vector.remove('[')
                                 if vector.count('\n')==1 : vector.remove('\n')
                                 if vector.count(']')==1 : vector.remove(']')
                                 if vector.count(']\n')==1 : vector.remove(']\n')

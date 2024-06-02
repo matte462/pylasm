@@ -1,5 +1,5 @@
 import numpy as np
-from spin_system import SpinSystem
+from spin_system import *
 
 # Some useful global functions
 def print_logo() -> None :
@@ -70,7 +70,7 @@ def adapt_magintmatrix(matrix: 'np.ndarray') -> 'np.ndarray' :
             new_matrix[r+1][c+1] = matrix[r][c]
     return new_matrix
 
-def solve_by_lanczos(system: SpinSystem,hamiltonian: 'np.ndarray',lanczos_mode: str,lanczos_par: int) :
+def solve_by_lanczos(system: 'SpinSystem',hamiltonian: 'np.ndarray',lanczos_mode: str,lanczos_par: int) :
     lanczos_mapping = {
         'one_shot' : one_shot_lanczos_solver,
         'scf' : scf_lanczos_solver
@@ -80,10 +80,10 @@ def solve_by_lanczos(system: SpinSystem,hamiltonian: 'np.ndarray',lanczos_mode: 
     results = lanczos_mapping[lanczos_mode](system,hamiltonian,lanczos_par)
     return results
 
-def one_shot_lanczos_solver(system: SpinSystem,hamiltonian: 'np.ndarray',n_iterations: int) -> float :
+def one_shot_lanczos_solver(system: 'SpinSystem',hamiltonian: 'np.ndarray',n_iterations: int) -> float :
     pass
 
-def scf_lanczos_solver(system: SpinSystem,hamiltonian: 'np.ndarray',energy_digits: int) -> float :
+def scf_lanczos_solver(system: 'SpinSystem',hamiltonian: 'np.ndarray',energy_digits: int) -> float :
     pass
 
 def print_conclusions(results) -> None :
