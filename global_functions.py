@@ -1,5 +1,6 @@
 import numpy as np
-from spin_system import *
+
+from spin_system import SpinSystem
 
 # Some useful global functions
 def print_logo() -> None :

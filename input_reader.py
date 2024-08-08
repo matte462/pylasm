@@ -42,14 +42,14 @@ class InputReader :
         allowed_sections = ['SYSTEM','LANCZOS']
 
         # Define permitted keys per each section and the reference dictionary
-        system_dict = {'struct_file_name': str,'struct_file_type': str,'mag_ion': str,'spin': float,'J_couplings_file': str,'max_NN_shell': int}
+        system_dict = {'struct_file_name': str,'struct_file_type': str,'mag_ion': str,'spin': float,'n_dim': int,'J_couplings_file': str,'max_NN_shell': int,'shell_digits': int}
         lanczos_dict = {'lanczos_mode': str,'n_iterations': int,'energy_digits': int}
         ref_dict = {'SYSTEM': system_dict,'LANCZOS': lanczos_dict}
 
         # Define the default configuration
         default_config = configparser.ConfigParser()
         default_config.optionxform = str # Keys are case-sensitive
-        default_config['SYSTEM'] = {'struct_file_name': "'NOT SPECIFIED'",'struct_file_type': "'POSCAR'",'mag_ion': "'NOT SPECIFIED'",'spin': "0.5",'J_couplings_file': "'NOT SPECIFIED'",'max_NN_shell': "1"}
+        default_config['SYSTEM'] = {'struct_file_name': "'NOT SPECIFIED'",'struct_file_type': "'POSCAR'",'mag_ion': "'NOT SPECIFIED'",'spin': "0.5",'n_dim': "3",'J_couplings_file': "'NOT SPECIFIED'",'max_NN_shell': "1",'shell_digits': "3"}
         default_config['LANCZOS'] = {'lanczos_mode': "'scf'",'n_iterations': "20",'energy_digits': "6"}
     
         # Initialize the effective configuration
@@ -86,8 +86,12 @@ class InputReader :
         # Some exceptions to help the use to choose appropriate values for spin, max_NN_shell, n_iterations and energy_digits keys
         if not is_spin_acceptable(ref_dict['SYSTEM']['spin']) : 
             raise ValueError(f"{ref_dict['SYSTEM']['spin']} is not acceptable as a spin quantum number.")
+        if ref_dict['SYSTEM']['n_dim']<=0 :
+            raise ValueError(f'Non-positive values for n_dim key are not permitted.')
         if ref_dict['SYSTEM']['max_NN_shell']<=0 :
             raise ValueError(f'Non-positive values for max_NN_shell key are not permitted.')
+        if ref_dict['SYSTEM']['shell_digits']<=0 :
+            raise ValueError(f'Non-positive values for shell_digits key are not permitted.')
         if ref_dict['LANCZOS']['n_iterations']<=0 :
             raise ValueError(f'Non-positive values for n_iterations key are not permitted.')
         if ref_dict['LANCZOS']['energy_digits']<=0 :
@@ -459,6 +463,12 @@ class InputReader :
         '''
         return self.config_info['SYSTEM']['spin']
     
+    def get_n_dim(self) -> int :
+        '''
+        Returns the number of spatial dimensions of the system in question if specified in the configuration file or directly 3 otherwise.
+        '''
+        return self.config_info['SYSTEM']['n_dim']
+    
     def get_J_couplings_file(self) -> str :
         '''
         Returns the name of the MagInt output file.
@@ -468,6 +478,12 @@ class InputReader :
     def get_max_NN_shell(self) -> int :
         '''
         Returns the chosen number of NN shells if specified in the configuration file or directly 1 otherwise.
+        '''
+        return self.config_info['SYSTEM']['max_NN_shell']
+    
+    def get_shell_digits(self) -> int :
+        '''
+        Returns the number of digits to identify the NN shells by distance if specified in the configuration file or directly 3 otherwise.
         '''
         return self.config_info['SYSTEM']['max_NN_shell']
     

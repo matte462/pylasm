@@ -11,7 +11,7 @@ def test_read_config_file_0() -> None :
     '''
     # Expected default configuration
     default_settings = {}
-    default_settings['SYSTEM'] = {'struct_file_name': 'NOT SPECIFIED','struct_file_type': 'POSCAR','mag_ion': 'NOT SPECIFIED','spin': 0.5,'J_couplings_file': 'NOT SPECIFIED','max_NN_shell': 1}
+    default_settings['SYSTEM'] = {'struct_file_name': 'NOT SPECIFIED','struct_file_type': 'POSCAR','mag_ion': 'NOT SPECIFIED','spin': 0.5,'n_dim': 3,'J_couplings_file': 'NOT SPECIFIED','max_NN_shell': 1, 'shell_digits': 3}
     default_settings['LANCZOS'] = {'lanczos_mode': 'scf','n_iterations': 20,'energy_digits': 6}
 
     # Effective configuration to be tested
@@ -66,7 +66,7 @@ def test_read_config_file_5() -> None :
 def test_read_config_file_6() -> None :
     '''
     Tests that the proper Exception is raised when the n_iterations value is non-positive.
-    Same behaviour should be valid for max_NN_shell and energy_digits.
+    Same behaviour should be valid for max_NN_shell, shell_digits and energy_digits.
     ''' 
     with pytest.raises(ValueError, match='Non-positive values for n_iterations key are not permitted.') :
         reader = InputReader('./Inputs/TestFiles/config_file_13.ini')
@@ -87,8 +87,10 @@ def test_read_config_file_7() -> None :
         'struct_file_type': 'POSCAR',
         'mag_ion': 'Ag',
         'spin': 1.5,
+        'n_dim': 2,
         'J_couplings_file': './Inputs/TestFiles/V_Mult_1.dat',
-        'max_NN_shell': 2
+        'max_NN_shell': 2,
+        'shell_digits': 4
     }
     exp_settings['LANCZOS'] = {
         'lanczos_mode': 'one_shot',

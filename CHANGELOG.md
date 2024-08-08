@@ -1,3 +1,14 @@
+2024-08-08 Matteo Costa <mattecosta48@gmail.com>
+
+    * input_reader.py: Introduction of two new tags (i.e. n_dim,shell_digits) to be readed from the configuration file. The associated getter methods are also implemented.
+
+    * spin_system.py (find_NN_shell): The method now requires two more variables to be passed as arguments when called. A major modification to the implemetation was also necessary.
+
+    * test_input_reader.py (test_*): Minor changes to the interested testing routines due to the new variables at play.
+
+    * test_spin_system.py (test_find_NN_shell_*): Minor changes to the interested testing routines due to the new variables at play.
+
+
 2024-06-02 Matteo Costa <mattecosta48@gmail.com>
 
     * global_functions.py: Some modifications in the way I import the SpinSystem class due to an incoming circular import error for the spin_system module.
