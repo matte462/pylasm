@@ -1,5 +1,4 @@
 import numpy as np
-from global_functions import is_spin_acceptable
 
 class SpinSystem() :
     '''
@@ -17,7 +16,7 @@ class SpinSystem() :
             latt_vecs (np.ndarray): Set of 3 lattice vectors defining the periodic boundary conditions;
             sites (np.ndarray): Finite set of atomic positions of the spins in the system;
             spin (float): Spin quantum number.
-        ''' 
+        '''
         if latt_vecs.shape[0]==3 :
             self.latt_vecs = latt_vecs
         else :
@@ -26,6 +25,8 @@ class SpinSystem() :
             self.sites = sites
         else :
             raise ValueError(f'Only {sites.shape[0]} site is given, while they should be 2 or more.')
+        
+        from global_functions import is_spin_acceptable
         if is_spin_acceptable(spin) :
             self.spin = spin
         else :
@@ -101,17 +102,20 @@ class SpinSystem() :
         '''
         self.sites[i] = new_ith_site
 
-    def find_NN_shell(self,ref_spin: int,n_shell: int) -> tuple :
+    def find_NN_shell(self,ref_spin: int,n_shell: int,shell_digits: int,n_dim: int) -> tuple :
         '''
-        Returns a tuple of two lists, which contain the indices of all the spins belonging to the specified NN shell
-        of the reference spin and the associated connecting vectors respectively. The basic idea is to generate the 
-        coordinates of all sites in the unit cell and their 26 replicae in the adjacent ones. 
+        Returns a tuple of two arrays, which contain the indices of all the spins belonging to the specified NN shell
+        of the reference spin and the associated connecting vectors respectively. The basic idea is to take the 
+        coordinates of all magnetic sites in the unit cell and to shift them into the outer unit cells if necessary. 
         They are finally sorted according to the distance from the position of the reference spin so as to identify
-        the members of all NN shells.
+        the members of the desired NN shell.
+        In case of low-dimensional systems, only the smallest lattice vectors are used to perform the shifts.
         
         Args:
             ref_spin (int): The index of the reference spin, whose NN shells are the target of this method;
-            n_shell (int): Indicator of which NN shell is to be computed.
+            n_shell (int): Indicator of the NN shell of interest;
+            shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance;
+            n_dim (int): Number of spatial dimensions of the spin system under study.
         '''
         Nspins = self.get_Nspins()
         if ref_spin<0 or ref_spin>=Nspins :
@@ -121,60 +125,96 @@ class SpinSystem() :
         ref_site = self.get_sites()[ref_spin]
         latt_vecs = self.get_latt_vecs()
 
+        # Ordering lattice vectors by their norms
+        latt_vecs_norms = np.linalg.norm(latt_vecs,axis=1)
+        ord_latt_vecs_inds = sorted(range(len(latt_vecs_norms)), key=lambda k: latt_vecs_norms[k])
+        ord_latt_vecs = np.array([latt_vecs[i] for i in ord_latt_vecs_inds])
+        eff_latt_vecs = np.array([ord_latt_vecs[d] for d in range(n_dim)])
+
         # Quantities to be computed
         shell_indices = []
         shell_vectors = []
-        distances = []
+        shell_distances = []
 
-        # Loop over all other spins
-        for jth_spin in range(Nspins) :
-            if jth_spin!=ref_spin :
-                other_site = self.get_sites()[jth_spin]
-
-                # Loop over all possible replicae of the second spin
-                # Consider to introduce a new N_LowD just to reduce the work for this loop
-                for a in [-1,0,1] :
-                    for b in [-1,0,1] :
-                        for c in [-1,0,1] :
-                            a_shift = np.dot(latt_vecs[0],a)
-                            b_shift = np.dot(latt_vecs[1],b)
-                            c_shift = np.dot(latt_vecs[2],c)
-                            replica_site = other_site+a_shift+b_shift+c_shift
-                            distance_vec = ref_site-replica_site
-                            distance = np.sqrt(np.dot(distance_vec,distance_vec))
-                            shell_indices.append(jth_spin)
-                            shell_vectors.append([np.round(el,3) for el in distance_vec])
-                            distances.append(distance)
-                            # number of digits for the the shell vectors could be introduced as parameter in the configuration file
-
-        # Sort the so obtained lists so as to identify the NN shells
-        sorted_indices = sorted(range(len(distances)), key=lambda k: distances[k])
-        distances = [np.round(distances[i],3) for i in sorted_indices]
-        shell_indices = [shell_indices[i] for i in sorted_indices]
-        shell_vectors = [shell_vectors[i] for i in sorted_indices]
-
-        # Find the desired shell
-        shell_count = 1 # First shell is automatically found at the beginning of distances list
+        # Loop over adjacent unit cells (outwardly with respect to the one of the reference spin)
+        n_uc_shell = 0
         is_shell_found = False
-        old_distance = distances[0]
-        for d in range(1,len(distances)) :
-            new_distance = distances[d]
-            if shell_count==n_shell :
-                is_shell_found = True
-            if new_distance!=old_distance :
-                shell_count += 1
+        while not is_shell_found :
+
+            # Initial shift
+            initial_shift = np.zeros(3)
+            for d in range(n_dim) :
+                initial_shift += np.dot(eff_latt_vecs[d],-n_uc_shell)
+
+            # Preparation of all possible shift vectors to the (n_uc_shell)-th adjacent unit cells 
+            shift_indices = []
+            for i in range(2*n_uc_shell+1) :
+                is_i_extremal = (i==0 or i==2*n_uc_shell)
+                if n_dim==1 :
+                    if is_i_extremal : 
+                        shift_indices.append(tuple([i]))
+                    continue
+                for j in range(2*n_uc_shell+1) :
+                    is_j_extremal = (j==0 or j==2*n_uc_shell)
+                    if n_dim==2 :
+                        if (is_i_extremal or is_j_extremal) : 
+                            shift_indices.append((i,j))
+                        continue
+                    for k in range(2*n_uc_shell+1) :
+                        is_k_extremal = (k==0 or k==2*n_uc_shell)
+                        if n_dim==3 :
+                            if (is_i_extremal or is_j_extremal or is_k_extremal) :
+                                shift_indices.append((i,j,k))
             
-            # Properly modify the elements of shell_indices and shell_vectors that do not belong to the desired shell so as to remove them later
-            if shell_count!=n_shell :
-                shell_indices[d] = -1
-                shell_vectors[d] = np.zeros(3)
-        if is_shell_found==False :
-            raise ValueError(f'The desired NN shell was not found. Consider to decrement the n_shell value {n_shell} to less than {shell_count}.')
+            # Loop over all other spins
+            for jth_spin in range(Nspins) :
+                other_site = self.get_sites()[jth_spin]
+                replica_site = other_site+initial_shift
+                for s in range(len(shift_indices)) :
+                    for d in range(n_dim) :
+
+                        # Apply the current shift
+                        replica_site += np.dot(eff_latt_vecs[d],shift_indices[s][d])
+                        distance_vec = ref_site-replica_site
+                        distance = np.linalg.norm(distance_vec)
+
+                        # Save the results
+                        if np.round(distance,shell_digits)!=0.0 :
+                            shell_indices.append(jth_spin)
+                            shell_vectors.append(distance_vec)
+                            shell_distances.append(distance)
+                        
+                        # Undo the current shift
+                        replica_site += np.dot(eff_latt_vecs[d],-shift_indices[s][d])
+
+            # Sort the so obtained lists
+            sorted_indices = sorted(range(len(shell_distances)), key=lambda k: shell_distances[k])
+            shell_distances = [np.round(shell_distances[i],shell_digits) for i in sorted_indices]
+            shell_indices = [shell_indices[i] for i in sorted_indices]
+            shell_vectors = [shell_vectors[i] for i in sorted_indices]
+
+            # Identify the elements which are associated with the desired NN shell
+            distances_aux = [shell_distances[0]]
+            for d in shell_distances :
+                if d!=distances_aux[-1] :
+                    distances_aux.append(d)
+            
+            # Accept the results only if the length scale of the initial shift is higher than
+            # the presumed shell distance
+            if len(distances_aux)>=n_shell :
+                if min([np.linalg.norm(np.dot(vec,n_uc_shell)) for vec in eff_latt_vecs])>distances_aux[n_shell-1] :
+                    shell_distance = distances_aux[n_shell-1]
+                    is_shell_found = True
+            n_uc_shell += 1
         
-        # Remove those elements
-        shell_indices = [ind for ind in shell_indices if ind!=-1]
-        shell_vectors = [vec for vec in shell_vectors if not np.all(vec==np.zeros(3))]
-        return shell_indices, shell_vectors
+        # Focus on the NN shell of interest
+        final_shell_indices = []
+        final_shell_vectors = []
+        for d in range(len(shell_distances)) :
+            if shell_distances[d]==shell_distance :
+                final_shell_indices.append(shell_indices[d])
+                final_shell_vectors.append(shell_vectors[d])
+        return np.array(final_shell_indices), np.array(final_shell_vectors)
 
     def build_spin_operator(self) -> 'np.ndarray' :
         '''
@@ -196,7 +236,7 @@ class SpinSystem() :
                 S_z[a-1][b-1] = complex((spin+1-a)*(a==b))
         return np.array([S_x,S_y,S_z])
 
-    def build_hamiltonian(self,J_couplings: 'np.ndarray',NN_vectors: 'np.ndarray',max_NN_shell: int) -> 'np.ndarray' : # STILL TO BE IMPLEMENTED
+    def build_hamiltonian(self,J_couplings: 'np.ndarray',NN_vectors: 'np.ndarray',max_NN_shell: int,shell_digits: int,n_dim: int) -> 'np.ndarray' : # STILL TO BE IMPLEMENTED
         '''
         Returns the Hamiltonian matrix for the interacting spin system.
         As mentioned below, the order of the elements in the provided arrays is important,
@@ -205,7 +245,9 @@ class SpinSystem() :
         Args:
             J_couplings (np.ndarray): Ordered set of 3x3 intersite exchange matrices;
             NN_vectors (np.ndarray): Ordered set of 3D NN vectors;
-            max_NN_shell (int): The highest NN shell to be considered when computing the spi-spin interactions.
+            max_NN_shell (int): The highest NN shell to be considered when computing the spin-spin interactions;
+            shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance;
+            n_dim (int): Number of spatial dimensions of the spin system under study. 
         '''
         Nspins = self.get_Nspins()
         spin_mult = self.get_spin_mult()
@@ -222,7 +264,7 @@ class SpinSystem() :
 
             # Loop over all possible Spin pairs (double-counting is avoided)
             for i in range(Nspins) :
-                ith_NN_spins, ith_NN_vecs = self.find_NN_shell(i,nn)
+                ith_NN_spins, ith_NN_vecs = self.find_NN_shell(i,nn,shell_digits,n_dim)
 
                 # Inner cycle avoids double-counting
                 for j in range(i+1,Nspins) :
@@ -259,3 +301,5 @@ class SpinSystem() :
         spin_mult = self.get_spin_mult()
         dim = spin_mult**Nspins
         return np.random.rand(dim)
+    
+print(np.zeros((5)))

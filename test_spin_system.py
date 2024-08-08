@@ -45,7 +45,7 @@ def test_find_NN_shell_0() -> None :
         sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
         spin = 0.5
         system = SpinSystem(latt_vecs,sites,spin)
-        shell_indices, shell_vectors = system.find_NN_shell(2,1)
+        shell_indices, shell_vectors = system.find_NN_shell(2,1,3,3)
 
 def test_find_NN_shell_1() -> None :
     '''
@@ -57,19 +57,7 @@ def test_find_NN_shell_1() -> None :
         sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
         spin = 0.5
         system = SpinSystem(latt_vecs,sites,spin)
-        shell_indices, shell_vectors = system.find_NN_shell(0,0)
-
-def test_find_NN_shell_2() -> None :
-    '''
-    Tests that the proper Exception is raised when the find_NN_shell method is unable to identify
-    the desired NN shell due to the high value of n_shell parameter.
-    '''
-    with pytest.raises(ValueError, match='The desired NN shell was not found. Consider to decrement the n_shell value 30 to less than 26.') :
-        latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
-        sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
-        spin = 0.5
-        system = SpinSystem(latt_vecs,sites,spin)
-        shell_indices, shell_vectors = system.find_NN_shell(0,30)
+        shell_indices, shell_vectors = system.find_NN_shell(0,0,3,3)
 
 def test_build_spin_operator_0() -> None :
     '''
