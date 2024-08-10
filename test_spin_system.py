@@ -59,6 +59,140 @@ def test_find_NN_shell_1() -> None :
         system = SpinSystem(latt_vecs,sites,spin)
         shell_indices, shell_vectors = system.find_NN_shell(0,0,3,3)
 
+def test_find_NN_shell_2() -> None :
+    '''
+    Tests that the method correctly identifies the first, the second and the third NN spins
+    in a standard 1D lattice with two equally spaced magnetic sites.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs,sites,0.5)
+
+    # First NN shell is compared to the expectations
+    is_shell1_ok = True
+    shell1_indices, shell1_vectors = system.find_NN_shell(0,1,3,1)
+    shell1_indices_exp = np.array([1,1])
+    shell1_vectors_exp = np.array([[-0.5,0.0,0.0],[0.5,0.0,0.0]])
+    is_shell1_ok = is_shell1_ok and (np.linalg.norm(shell1_indices-shell1_indices_exp)==0.0)
+    is_shell1_ok = is_shell1_ok and (np.linalg.norm(shell1_vectors-shell1_vectors_exp)==0.0)
+
+    # Second NN shell is compared to the expectations
+    is_shell2_ok = True
+    shell2_indices, shell2_vectors = system.find_NN_shell(0,2,3,1)
+    shell2_indices_exp = np.array([0,0])
+    shell2_vectors_exp = np.array([[1.0,0.0,0.0],[-1.0,0.0,0.0]])
+    is_shell2_ok = is_shell2_ok and (np.linalg.norm(shell2_indices-shell2_indices_exp)==0.0)
+    is_shell2_ok = is_shell2_ok and (np.linalg.norm(shell2_vectors-shell2_vectors_exp)==0.0)
+
+    # Third NN shell is compared to the expectations
+    is_shell3_ok = True
+    shell3_indices, shell3_vectors = system.find_NN_shell(0,3,3,1)
+    shell3_indices_exp = np.array([1,1])
+    shell3_vectors_exp = np.array([[-1.5,0.0,0.0],[1.5,0.0,0.0]])
+    is_shell3_ok = is_shell3_ok and (np.linalg.norm(shell3_indices-shell3_indices_exp)==0.0)
+    is_shell3_ok = is_shell3_ok and (np.linalg.norm(shell3_vectors-shell3_vectors_exp)==0.0)
+
+    assert is_shell1_ok
+    assert is_shell2_ok
+    assert is_shell3_ok
+
+def test_find_NN_shell_3() -> None :
+    '''
+    Tests that the method correctly identifies the first, the second and the third NN spins
+    in a standard 2D square lattice with four magnetic sites.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0],[0.0,0.5,0.0],[0.5,0.5,0.0]])
+    system = SpinSystem(latt_vecs,sites,0.5)
+
+    # First NN shell is compared to the expectations
+    is_shell1_ok = True
+    shell1_indices, shell1_vectors = system.find_NN_shell(0,1,3,2)
+    shell1_indices_exp = np.array([1,2,1,2])
+    shell1_vectors_exp = np.array([[-0.5,0.0,0.0],[0.0,-0.5,0.0],[0.5,0.0,0.0],[0.0,0.5,0.0]])
+    is_shell1_ok = is_shell1_ok and (np.linalg.norm(shell1_indices-shell1_indices_exp)==0.0)
+    is_shell1_ok = is_shell1_ok and (np.linalg.norm(shell1_vectors-shell1_vectors_exp)==0.0)
+
+    # Second NN shell is compared to the expectations
+    is_shell2_ok = True
+    shell2_indices, shell2_vectors = system.find_NN_shell(0,2,3,2)
+    shell2_indices_exp = np.array([3,3,3,3])
+    shell2_vectors_exp = np.array([[-0.5,-0.5,0.0],[0.5,0.5,0.0],[0.5,-0.5,0.0],[-0.5,0.5,0.0]])
+    is_shell2_ok = is_shell2_ok and (np.linalg.norm(shell2_indices-shell2_indices_exp)==0.0)
+    is_shell2_ok = is_shell2_ok and (np.linalg.norm(shell2_vectors-shell2_vectors_exp)==0.0)
+
+    # Third NN shell is compared to the expectations
+    is_shell3_ok = True
+    shell3_indices, shell3_vectors = system.find_NN_shell(0,3,3,2)
+    shell3_indices_exp = np.array([0,0,0,0])
+    shell3_vectors_exp = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,-1.0,0.0],[-1.0,0.0,0.0]])
+    is_shell3_ok = is_shell3_ok and (np.linalg.norm(shell3_indices-shell3_indices_exp)==0.0)
+    is_shell3_ok = is_shell3_ok and (np.linalg.norm(shell3_vectors-shell3_vectors_exp)==0.0)
+
+    assert is_shell1_ok
+    assert is_shell2_ok
+    assert is_shell3_ok
+
+def test_find_NN_shell_4() -> None :
+    '''
+    Tests that the method correctly identifies the first, the second and the third NN spins
+    in a standard 3D cubic lattice with two magnetic sites.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.5,0.5]])
+    system = SpinSystem(latt_vecs,sites,0.5)
+
+    # First NN shell is compared to the expectations
+    is_shell1_ok = True
+    shell1_indices, shell1_vectors = system.find_NN_shell(0,1,3,3)
+    shell1_indices_exp = np.array([1,1,1,1,1,1,1,1])
+    shell1_vectors_exp = np.array([[-0.5,-0.5,-0.5],[0.5,0.5,0.5],[0.5,0.5,-0.5],[0.5,-0.5,0.5],[0.5,-0.5,-0.5],[-0.5,0.5,0.5],[-0.5,0.5,-0.5],[-0.5,-0.5,0.5]])
+    is_shell1_ok = is_shell1_ok and (np.linalg.norm(shell1_indices-shell1_indices_exp)==0.0)
+    is_shell1_ok = is_shell1_ok and (np.linalg.norm(shell1_vectors-shell1_vectors_exp)==0.0)
+
+    # Second NN shell is compared to the expectations
+    is_shell2_ok = True
+    shell2_indices, shell2_vectors = system.find_NN_shell(0,2,3,3)
+    shell2_indices_exp = np.array([0,0,0,0,0,0])
+    shell2_vectors_exp = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0],[0.0,0.0,-1.0],[0.0,-1.0,0.0],[-1.0,0.0,0.0]])
+    is_shell2_ok = is_shell2_ok and (np.linalg.norm(shell2_indices-shell2_indices_exp)==0.0)
+    is_shell2_ok = is_shell2_ok and (np.linalg.norm(shell2_vectors-shell2_vectors_exp)==0.0)
+
+    # Third NN shell is compared to the expectations
+    is_shell3_ok = True
+    shell3_indices, shell3_vectors = system.find_NN_shell(0,3,3,3)
+    shell3_indices_exp = np.array([0,0,0,0,0,0,0,0,0,0,0,0])
+    shell3_vectors_exp = np.array([[1.0,1.0,0.0],[1.0,0.0,1.0],[1.0,0.0,-1.0],[1.0,-1.0,0.0],[0.0,1.0,1.0],[0.0,1.0,-1.0],[0.0,-1.0,1.0],[0.0,-1.0,-1.0],[-1.0,1.0,0.0],[-1.0,0.0,1.0],[-1.0,0.0,-1.0],[-1.0,-1.0,0.0]])
+    is_shell3_ok = is_shell3_ok and (np.linalg.norm(shell3_indices-shell3_indices_exp)==0.0)
+    is_shell3_ok = is_shell3_ok and (np.linalg.norm(shell3_vectors-shell3_vectors_exp)==0.0)
+
+    assert is_shell1_ok
+    assert is_shell2_ok
+    assert is_shell3_ok
+
+def test_find_NN_shell_5() -> None :
+    '''
+    Tests that the method correctly identifies the first NN spins in a 3D rhombohedral lattice,
+    where all the first NN sites do not lie within the same unit cell.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[1.0,0.0,6.0],[-0.5,0.5*np.sqrt(3),6.0],[-0.5,-0.5*np.sqrt(3),6.0]])
+    sites = np.array([[0.0,0.0,6.0],[0.0,0.0,12.0]])
+    system = SpinSystem(latt_vecs,sites,0.5)
+
+    # First NN shell is compared to the expectations
+    is_shell1_ok = True
+    shell1_indices, shell1_vectors = system.find_NN_shell(0,1,4,3)
+    shell1_indices_exp = np.array([1,1,1])
+    shell1_vectors_exp = np.array([[-0.5,0.5*np.sqrt(3),0.0],[-0.5,-0.5*np.sqrt(3),0.0],[1.0,0.0,0.0]])
+    is_shell1_ok = is_shell1_ok and (np.linalg.norm(shell1_indices-shell1_indices_exp)==0.0)
+    is_shell1_ok = is_shell1_ok and (np.linalg.norm(shell1_vectors-shell1_vectors_exp)==0.0)
+
+    assert is_shell1_ok
+
 def test_build_spin_operator_0() -> None :
     '''
     Tests that the spin operator is computed correctly for S=1/2 as a representative case of half-integer spin quantum number.
@@ -121,3 +255,92 @@ def test_build_spin_operator_1() -> None :
             for j in range(spin_mult) :
                 is_S_ok = is_S_ok and (np.round(S_eff[x][i][j],10)==np.round(S_exp[x][i][j],10))
     assert is_S_ok
+
+def test_build_hamiltonian_0() -> None :
+    '''
+    Tests that the method returns the proper hamiltonian matrix when provided with a 
+    two-sites 1D S=1/2 system and Heisenberg-like exchange interaction matrices. 
+    Only first NN shells are taken into account.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+
+    # Setting the J couplings
+    J_couplings = [[np.eye(3),np.eye(3)]]
+    NN_vectors = [[[-0.5,0.0,0.0],[0.5,0.0,0.0]],[[-1.0,0.0,0.0],[1.0,0.0,0.0]]]
+
+    # Expected vs Computed Spin Hamiltonian (only first NN shell)
+    H_1_exp = np.array([[0.5,0.0,0.0,0.0],
+                        [0.0,-0.5,1.0,0.0],
+                        [0.0,1.0,-0.5,0.0],
+                        [0.0,0.0,0.0,0.5]])
+    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,1)
+
+    assert np.linalg.norm(H_1-H_1_exp)==0.0
+
+def test_build_hamiltonian_1() -> None :
+    '''
+    Tests that the method returns the proper hamiltonian matrix when provided with a 
+    two-sites 1D S=1/2 system and Heisenberg-like exchange interaction matrices. 
+    Only first and second NN shells are taken into account.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+
+    # Setting the J couplings
+    J_couplings = np.array([[np.eye(3),np.eye(3)],[np.eye(3),np.eye(3)]])
+    NN_vectors = np.array([[[-0.5,0.0,0.0],[0.5,0.0,0.0]],[[-1.0,0.0,0.0],[1.0,0.0,0.0]]])
+
+    # Expected vs Computed Spin Hamiltonian (up to second NN shell)
+    H_2_exp = np.array([[3.5,0.0,0.0,0.0],
+                        [0.0,2.5,1.0,0.0],
+                        [0.0,1.0,2.5,0.0],
+                        [0.0,0.0,0.0,3.5]])
+    H_2 = system.build_hamiltonian(J_couplings,NN_vectors,2,3,1)
+
+    assert np.linalg.norm(H_2-H_2_exp)==0.0
+
+def test_compute_J_eff_0() -> None :
+    '''
+    Tests that the proper Exception is raised when the vector passed as agument
+    to the method of interest is not included in the available NN vectors.
+    '''
+    vector = np.array([0.5,0.0,0.0])
+    with pytest.raises(ValueError, match='\\[0.5, 0.0, 0.0\\] could not be found among the input NN vectors.') :
+        
+        # Structural properties of the system
+        latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+        sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+        spin = 0.5
+        system = SpinSystem(latt_vecs,sites,spin)
+
+        # Setting the J couplings
+        J_couplings = [np.eye(3),np.eye(3)]
+        NN_vectors = [np.array([0.0,0.5,0.0]),np.array([0.0,0.0,0.5])]
+        J_eff = system.compute_J_eff(J_couplings,NN_vectors,vector,3)
+
+def test_compute_J_eff_1() -> None :
+    '''
+    Tests that the method correctly returns the effective intersite exchange tensor 
+    in its most general form.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+
+    # Setting the J couplings
+    J_exp = np.array([[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]])
+    J_couplings = [J_exp,np.eye(3),np.eye(3)]
+    NN_vectors = [np.array([0.5,0.0,0.0]),np.array([0.0,0.5,0.0]),np.array([0.0,0.0,0.5])]
+    vector = np.array([0.5,0.0,0.0])
+    J_eff = system.compute_J_eff(J_couplings,NN_vectors,vector,3)
+
+    assert np.linalg.norm(J_eff-J_exp)==0.0

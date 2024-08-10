@@ -1,3 +1,11 @@
+2024-08-10 Matteo Costa <mattecosta48@gmail.com>
+
+    * test_spin_system.py (test_*): I have added some testing routines for several methods of the SpinSystem class, namely find_NN_shell, build_hamiltonian and compute_J_eff. Still one could think about introducing further testing functions for systems with more complicated geometries and higher spin quantum numbers.
+
+    * spin_system.py (find_NN_shell): The testing routines allowed to show that the application of the shifts at each iteration was poorly implemented.
+
+    * spin_system.py (build_hamiltonian): The task of the method is now carried out by two smaller methods (compute_J_eff and compute_pair_interaction) in order to simplify the testing process. 
+
 2024-08-08 Matteo Costa <mattecosta48@gmail.com>
 
     * input_reader.py: Introduction of two new tags (i.e. n_dim,shell_digits) to be readed from the configuration file. The associated getter methods are also implemented.

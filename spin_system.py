@@ -171,20 +171,21 @@ class SpinSystem() :
                 other_site = self.get_sites()[jth_spin]
                 replica_site = other_site+initial_shift
                 for s in range(len(shift_indices)) :
+                    
+                    # Apply the current shift
                     for d in range(n_dim) :
-
-                        # Apply the current shift
                         replica_site += np.dot(eff_latt_vecs[d],shift_indices[s][d])
-                        distance_vec = ref_site-replica_site
-                        distance = np.linalg.norm(distance_vec)
+                    distance_vec = ref_site-replica_site
+                    distance = np.linalg.norm(distance_vec)
 
-                        # Save the results
-                        if np.round(distance,shell_digits)!=0.0 :
-                            shell_indices.append(jth_spin)
-                            shell_vectors.append(distance_vec)
-                            shell_distances.append(distance)
+                    # Save the results
+                    if np.round(distance,shell_digits)!=0.0 :
+                        shell_indices.append(jth_spin)
+                        shell_vectors.append(distance_vec)
+                        shell_distances.append(distance)
                         
-                        # Undo the current shift
+                    # Undo the current shift
+                    for d in range(n_dim) :
                         replica_site += np.dot(eff_latt_vecs[d],-shift_indices[s][d])
 
             # Sort the so obtained lists
@@ -236,24 +237,21 @@ class SpinSystem() :
                 S_z[a-1][b-1] = complex((spin+1-a)*(a==b))
         return np.array([S_x,S_y,S_z])
 
-    def build_hamiltonian(self,J_couplings: 'np.ndarray',NN_vectors: 'np.ndarray',max_NN_shell: int,shell_digits: int,n_dim: int) -> 'np.ndarray' : # STILL TO BE IMPLEMENTED
+    def build_hamiltonian(self,J_couplings: list,NN_vectors: list,max_NN_shell: int,shell_digits: int,n_dim: int) -> 'np.ndarray' :
         '''
         Returns the Hamiltonian matrix for the interacting spin system.
         As mentioned below, the order of the elements in the provided arrays is important,
         since the i-th J matrix specifically corresponds to the i-th NN vector.
 
         Args:
-            J_couplings (np.ndarray): Ordered set of 3x3 intersite exchange matrices;
-            NN_vectors (np.ndarray): Ordered set of 3D NN vectors;
+            J_couplings (list): Ordered set of 3x3 intersite exchange matrices;
+            NN_vectors (list): Ordered set of 3D NN vectors;
             max_NN_shell (int): The highest NN shell to be considered when computing the spin-spin interactions;
             shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance;
             n_dim (int): Number of spatial dimensions of the spin system under study. 
         '''
         Nspins = self.get_Nspins()
         spin_mult = self.get_spin_mult()
-
-        # Construction of spin operators
-        S_vec = self.build_spin_operator()
 
         # Initialize the Spin Hamiltonian matrix
         dim = spin_mult**Nspins
@@ -262,31 +260,79 @@ class SpinSystem() :
         # Loop over all permitted NN Shells
         for nn in range(1,max_NN_shell+1) :
 
-            # Loop over all possible Spin pairs (double-counting is avoided)
+            # Loop over all spins
             for i in range(Nspins) :
+
+                # Identify the NN shell of interest for the first spin
                 ith_NN_spins, ith_NN_vecs = self.find_NN_shell(i,nn,shell_digits,n_dim)
 
-                # Inner cycle avoids double-counting
-                for j in range(i+1,Nspins) :
-                    if j in ith_NN_spins :
+                # Inner cycle over the second spins
+                for j in range(len(ith_NN_spins)) :
+                    if ith_NN_spins[j]<i : continue
+                        
+                    # Compute the effective J tensor between the two spins
+                    J_eff = self.compute_J_eff(J_couplings[nn-1],NN_vectors[nn-1],ith_NN_vecs[j],shell_digits)
 
-                        # Initialize the interaction term between i & j spins
-                        interaction_term = np.zeros((spin_mult**(j-i+1), spin_mult**(j-i+1)),dtype=complex)
-                        J_tensor = np.zeros((3,3),dtype=float)
+                    # Compute the interaction term and update the Spin Hamiltonian
+                    interaction_term = self.compute_pair_interaction(i,ith_NN_spins[j],J_eff)
+                    H += interaction_term
+        return np.real(H)
+    
+    def compute_J_eff(self,J_couplings: list,NN_vectors: list,vector: 'np.ndarray',shell_digits: int) -> 'np.ndarray' :
+        '''
+        Returns the effective exchange interaction tensor associated with a specific NN vector.
 
-                        # i & j spins could have more than one J matrix (or NN bond) due to periodic boundary conditions 
-                        j_indices = np.where(np.array(ith_NN_spins)==j)[0]
-                        jth_NN_vecs = np.array([ith_NN_vecs[v] for v in range(len(ith_NN_vecs)) if v in j_indices])
-                        for vec in jth_NN_vecs :
-                            vec_index = np.where(NN_vectors[nn-1]==vec)[0][0]
-                            J_tensor += J_couplings[nn-1][vec_index]
+        Args:
+            J_couplings (list): Ordered set of 3x3 intersite exchange matrices (only for a specific NN shell);
+            NN_vectors (list): Ordered set of 3D NN vectors (only for a specific NN shell);
+            vector (np.ndarray): 3D vector to be found among the NN vectors;
+            shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance.
+        '''
+        # Initialize the J matrix
+        J_eff = np.zeros((3,3))
 
-                        # Loop over all the spatial coordinates
-                        for a in range(3) :
-                            for b in range(3) :
-                                interaction_term += J_tensor[a][b] * np.kron(np.kron(S_vec[a],np.eye(spin_mult**(j-i-1))), S_vec[b])
-                        H += np.kron(np.kron(np.eye(spin_mult**i), interaction_term), np.eye(spin_mult**(Nspins-j-1)))
-        return H
+        # Find the input J matrix by correspondence with the NN vectors
+        is_vector_found = False
+        for i in range(len(NN_vectors)) :
+            distance = np.linalg.norm(NN_vectors[i]-vector)
+            if np.round(distance,shell_digits)==0.0 :
+                is_vector_found = True
+                J_eff += J_couplings[i]
+            if i==len(NN_vectors)-1 and not is_vector_found :
+                raise ValueError(f'{list(vector)} could not be found among the input NN vectors.')
+        return J_eff
+    
+    def compute_pair_interaction(self,first: int,second: int,J_eff: 'np.ndarray') -> 'np.ndarray' :
+        '''
+        Returns the contribution of a single pair to the global spin Hamiltonian matrix.
+
+        Args:
+            first (int): Index for the first spin within the pair;
+            second (int): Index for the second spin within the pair;
+            J_eff (np.ndarray): 3x3 real matrix for the effective intersite exchange interaction between the pair.
+        '''
+        Nspins = self.get_Nspins()
+        spin_mult = self.get_spin_mult()
+
+        # Construction of spin operators
+        S_vec = self.build_spin_operator()
+
+        # Initialize the interaction term between the two spins
+        matrix_size = spin_mult**(second-first+1)
+        interaction_term = np.zeros((matrix_size, matrix_size),dtype=complex)
+
+        # Loop over all the spatial coordinates
+        for a in range(3) :
+            for b in range(3) :
+                if second>first : 
+                    aux_size = spin_mult**(second-first-1)
+                    interaction_term += J_eff[a][b] * np.kron(np.kron(S_vec[a],np.eye(aux_size)), S_vec[b])
+                else :
+                    interaction_term += J_eff[a][b] * np.matmul(S_vec[a], S_vec[b])
+        
+        aux_size = spin_mult**(Nspins-second-1)
+        final_term = np.kron(np.kron(np.eye(spin_mult**first), interaction_term), np.eye(aux_size))
+        return final_term
 
     def init_random_state(self) -> 'np.ndarray' :
         '''
@@ -301,5 +347,3 @@ class SpinSystem() :
         spin_mult = self.get_spin_mult()
         dim = spin_mult**Nspins
         return np.random.rand(dim)
-    
-print(np.zeros((5)))
