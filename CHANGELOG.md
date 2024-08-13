@@ -1,5 +1,9 @@
 2024-08-10 Matteo Costa <mattecosta48@gmail.com>
 
+    * test_spin_system.py (test_*): I have added several new testing functions for making sure the build_hamiltonian and compute_pair_interactions methods of the SpinSystem class behave exactly how I expect them to do. Due to the rapidly increasing complexity of these systems I could only include relatively trivial cases. However, they take into account the variation of all the parameters at play: the number of sites per unit cell, the number of spatial dimensions, the number of included NN shells and the spin quantum number.
+
+2024-08-10 Matteo Costa <mattecosta48@gmail.com>
+
     * test_spin_system.py (test_*): I have added some testing routines for several methods of the SpinSystem class, namely find_NN_shell, build_hamiltonian and compute_J_eff. Still one could think about introducing further testing functions for systems with more complicated geometries and higher spin quantum numbers.
 
     * spin_system.py (find_NN_shell): The testing routines allowed to show that the application of the shifts at each iteration was poorly implemented.
