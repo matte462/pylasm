@@ -29,7 +29,7 @@ def main() :
     np.random.seed(187)
     lanczos_mode = reader.get_lanczos_mode()
     lanczos_par = reader.get_lanczos_par()
-    results = solve_by_lanczos(system,hamiltonian,lanczos_mode,lanczos_par)
+    results = solve_by_lanczos(hamiltonian,lanczos_mode,lanczos_par)
     print_conclusions(results)
 
 

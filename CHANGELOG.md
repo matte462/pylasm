@@ -1,4 +1,11 @@
-2024-08-10 Matteo Costa <mattecosta48@gmail.com>
+2024-08-14 Matteo Costa <mattecosta48@gmail.com>
+
+    * global_functions.py: I have implemented and documented the functions to perform the Lanczos algorithm by a one-shot calculation or a self-consistent cycle. Still they need to be tested.
+
+    * main.py: Minor modification due to the fact that now solve_by_lanczos only requires three prameters to be passed as arguments.
+
+
+2024-08-13 Matteo Costa <mattecosta48@gmail.com>
 
     * test_spin_system.py (test_*): I have added several new testing functions for making sure the build_hamiltonian and compute_pair_interactions methods of the SpinSystem class behave exactly how I expect them to do. Due to the rapidly increasing complexity of these systems I could only include relatively trivial cases. However, they take into account the variation of all the parameters at play: the number of sites per unit cell, the number of spatial dimensions, the number of included NN shells and the spin quantum number.
 

@@ -329,21 +329,8 @@ class SpinSystem() :
                     interaction_term += J_eff[a][b] * np.kron(np.kron(S_vec[a],np.eye(aux_size)), S_vec[b])
                 else :
                     interaction_term += J_eff[a][b] * np.matmul(S_vec[a], S_vec[b])
-        
+
+        # Adjust the shape by the proper tensor products  
         aux_size = spin_mult**(Nspins-second-1)
         final_term = np.kron(np.kron(np.eye(spin_mult**first), interaction_term), np.eye(aux_size))
         return final_term
-
-    def init_random_state(self) -> 'np.ndarray' :
-        '''
-        Initializes the spin system to a random state in the N-spins Hilbert space,
-        which means that returns an arbitrary linear combination of the associated
-        N-spins basis states.
-        Note that the dimension of the N-spins Hilbert space (D) is related to the 
-        one of the 1-spin Hilbert space (d) by
-                D = d**N
-        '''
-        Nspins = self.get_Nspins()
-        spin_mult = self.get_spin_mult()
-        dim = spin_mult**Nspins
-        return np.random.rand(dim)
