@@ -474,6 +474,33 @@ def test_build_hamiltonian_7() -> None :
     H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,1)
 
     assert np.linalg.norm(H_1-H_1_exp)<1e-10
+    
+def test_build_hamiltonian_8() -> None :
+    '''
+    Tests that the method returns the proper hamiltonian matrix when provided with a 
+    two-sites 1D S=1/2 system and exchange interaction matrices that also include 
+    anisotropic contributions. 
+    Only the first NN shell is taken into account.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[10.0,0.0,0.0],[0.0,2.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.0,1.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+
+    # Setting the J couplings
+    J_couplings = [[np.array([[1.0,1.0,1.0],[1.0,1.0,1.0],[1.0,1.0,1.0]]),
+                    np.array([[1.0,1.0,-1.0],[1.0,1.0,-1.0],[-1.0,-1.0,1.0]])]]
+    NN_vectors = [[[0.0,1.0,0.0],[0.0,-1.0,0.0]]]
+
+    # Expected vs Computed Spin Hamiltonian (only first NN shell)
+    H_1_exp = np.array([[0.5,0.0,0.0,-1.0j],
+                        [0.0,-0.5,1.0,0.0],
+                        [0.0,1.0,-0.5,0.0],
+                        [1.0j,0.0,0.0,0.5]])
+    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,1)
+
+    assert np.linalg.norm(H_1-H_1_exp)==0.0
 
 def test_compute_J_eff_0() -> None :
     '''
@@ -481,7 +508,7 @@ def test_compute_J_eff_0() -> None :
     to the method of interest is not included in the available NN vectors.
     '''
     vector = np.array([0.5,0.0,0.0])
-    with pytest.raises(ValueError, match='\\[0.5, 0.0, 0.0\\] could not be found among the input NN vectors.') :
+    with pytest.raises(ValueError, match='\\[0.5 0.  0. \\] could not be found among the input NN vectors.') :
         
         # Structural properties of the system
         latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
