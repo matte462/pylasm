@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.linalg import ishermitian, eigh_tridiagonal
 
 from spin_system import SpinSystem
 
@@ -100,68 +101,65 @@ def solve_by_lanczos(hamiltonian: 'np.ndarray',lanczos_mode: str,lanczos_par: in
 def one_shot_lanczos_solver(hamiltonian: 'np.ndarray',n_iterations: int) -> list :
     '''
     Implements the Lanczos algorithm by a one-shot calculation with a precise number 
-    of iterations.
+    of iterations. Details about the procedure and the nomenclature can be found in the 
+    lecture notes (Chapter 10) of the ETH course "Numerical Methods for Solving Large Scale 
+    Eigenvalue Problems" available on the following website.
+    [https://people.inf.ethz.ch/arbenz/ewp/Lnotes/chapter10.pdf]
 
     Args:
         hamiltonian (np.ndarray): Spin Hamiltonian matrix.
         n_iterations (int): Number of iterations to perform. 
     '''
+    if not ishermitian(hamiltonian) :
+        raise ValueError('The Spin Hamiltonian matrix is not Hermitian.')
+    
     # Initial random state for the spin system
     dim = hamiltonian.shape[0]
-    psi0 = np.random.rand(dim)
-    norm0 = np.linalg.norm(psi0)
-    psi0 = (1.0/norm0)*psi0
+    x = np.random.uniform(-1,1,dim)+np.random.uniform(-1,1,dim)*1.0j
+    x_norm = np.linalg.norm(x)
 
-    # Initalization of the Lanczos basis and coefficients
-    f_basis = []
-    alpha_s = []
-    beta_s = []
-
-    # Initial set-up for the Lanczos algorithm 
-    # (f_nm stands for f_n-1, while f_np for f_n+1)
-    f_nm = np.array([1.0])
-    f_n = psi0
+    # First iteration
+    q = (1.0/x_norm)*x
+    r = np.dot(hamiltonian,q)
+    a_1 = np.real(np.vdot(q,r))
+    r = r-a_1*q
+    b_1 = np.linalg.norm(r)
+    
+    # Save the Lanczos vector and coefficients from the first iteration
+    Q_basis = [q]
+    alphas = [a_1]
+    betas = [b_1]
 
     print(f'\nN° iterations: {n_iterations}')
-    for n in range(1,n_iterations+1) :
+    for j in range(2,n_iterations+1) :
 
-        # Definition of the current Lanczos coefficients
-        Hf_n = np.dot(hamiltonian,f_n)
-        a_n = np.dot(f_n,Hf_n)/np.dot(f_n,f_n)
-        b_n2 = np.dot(f_n,f_n)/np.dot(f_nm,f_nm)
+        # Current iteration
+        v = q
+        q = (1/betas[-1])*r
+        r = np.dot(hamiltonian,q)-betas[-1]*v
+        a_j = np.real(np.vdot(q,r))
+        r = r-a_j*q
+        for q_prime in Q_basis : r = r-np.vdot(q_prime,r)*q_prime # re-orthogonalization step
+        b_j = np.linalg.norm(r)
+        
+        # Save the Lanczos vector and coefficients from the current iteration
+        Q_basis.append(q)
+        alphas.append(a_j)
+        if j<=n_iterations-1 :
+            betas.append(b_j)
 
-        # Report the (Non-)Orthogonality of the current Lanczos vectors
-        is_fn_orthogonal = True
-        for f in f_basis :
-            is_fn_orthogonal = is_fn_orthogonal and (np.dot(f_n,f)<1e-5)
-        response = ''*(is_fn_orthogonal)+'NOT '*(not is_fn_orthogonal)
-        print(f'{n}: New Lanczos vector is {response}orthogonal the previous ones.')
-
-        # Save all items of interest
-        f_basis.append(f_n)
-        alpha_s.append(a_n)
-        if n==1 : b_n2 = 0.0
-        else : beta_s.append(np.sqrt(b_n2))
-
-        # Definition of the next Lanczos vector
-        an_f_n = a_n*f_n
-        bn2_f_nm = b_n2*f_nm
-        f_np = Hf_n-an_f_n-bn2_f_nm
-
-        # Set-up for the next iteration
-        f_nm = f_n
-        f_n = f_np
+        # Report the (Non-)Orthogonality of the current Lanczos basis
+        is_q_orthogonal = True
+        for q_prime in Q_basis :
+            is_q_orthogonal = is_q_orthogonal and bool(np.vdot(q,q_prime)<1e-5)
+        response = ''*(is_q_orthogonal)+'NOT '*(not is_q_orthogonal)
+        print(f'{j}: New Lanczos vector is {response}orthogonal the previous ones.')
     
-    # Definition and Diagonalization of the final Tridiagonal matrix
-    tridiag = np.diag(beta_s, -1) + np.diag(alpha_s, 0) + np.diag(beta_s, 1)
-    energies, states = np.linalg.eigh(tridiag)
+    # Diagonalization of the approximated Tridiagonal matrix
+    energies, states = eigh_tridiagonal(alphas,betas)
+    print(f'Ground-state energy: {energies[0]} eV')
 
-    # Sorting Eigenvectors by the associated energy Eigenvalue
-    ord_indices = sorted(range(len(energies)), key=lambda k: energies[k])
-    ord_energies = [energies[i] for i in ord_indices]
-    ord_states = [states[i] for i in ord_indices]
-
-    return [(n_iterations, ord_energies, ord_states, f_basis)]
+    return [(n_iterations, energies, states, Q_basis)]
 
 def scf_lanczos_solver(hamiltonian: 'np.ndarray',energy_digits: int) -> list :
     '''
@@ -187,8 +185,8 @@ def scf_lanczos_solver(hamiltonian: 'np.ndarray',energy_digits: int) -> list :
         nth_result = one_shot_lanczos_solver(hamiltonian,n)
 
         # Save the results
-        GS_energies.append(nth_result[n-2][1][0])
-        results.append(nth_result)
+        GS_energies.append(nth_result[0][1][0])
+        results.append(nth_result[0])
 
         # Check whether convergence is achieved
         if n>=3 :
@@ -198,6 +196,3 @@ def scf_lanczos_solver(hamiltonian: 'np.ndarray',energy_digits: int) -> list :
         n += 1
     
     return results
-
-def print_conclusions(results) -> None :
-    pass

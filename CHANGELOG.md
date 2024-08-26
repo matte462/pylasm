@@ -1,3 +1,17 @@
+2024-08-26 Matteo Costa <mattecosta48@gmail.com>
+
+    * spin_system.py (build_hamiltonian): I have noticed that the returned Hamiltonian matrix should not be constrained to be real-valued. So the return statement has been changed accordingly.
+
+    * spin_system.py (find_NN_shell & compute_J_eff): The two methods have been slightly modified due to an incoming problem while running the testing routines in test_spin_system.py.
+
+    * input_reader.py: Same as for the find_NN_shell and compute_J_eff methods of the SpinSystem class.
+
+    * test_spin_system.py (test_build_hamiltonian_8): I have added a new testing function to check whether anisotropic contributions to the J tensors were properly treated within the build_hamiltonian method. This allowed me to notice the problem I mentioned above since complex values in the Hamiltonian matrix only arise from those terms.
+
+    * global_functions.py (one_shot_lanczos_solver): A new implementation of the Lanczos algorithm is added. As a consequence of the latest changes to the build_hamiltonian method of the SpinSystem class, the initial random state requires the generation of two floating numbers between -1.0 and +1.0: one for the real part and the other for the imaginary part. The procedure and the name of the variables at play are also changed, but they can be easily understood by looking at the reference specified in the documentation. A re-orthogonalization step for the Lanczos vector obtained at each iteration is necessary to stabilize and improve the results.
+
+    * test_global_functions.py (test_*_lanczos_solver_*): The new testing routines try to demonstrate that the functions for the Lanczos algorithm are capable to approximate reasonably well the lowest energy eigenvalue of an interacting spin system. They merely target Hamiltonian matrices of the form I expect. This suggests that some more attention while building/diagonalizing the Hamiltonian matrices is needed.
+
 2024-08-14 Matteo Costa <mattecosta48@gmail.com>
 
     * global_functions.py: I have implemented and documented the functions to perform the Lanczos algorithm by a one-shot calculation or a self-consistent cycle. Still they need to be tested.

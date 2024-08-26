@@ -26,11 +26,11 @@ def main() :
     shell_digits = reader.get_shell_digits()
     hamiltonian = system.build_hamiltonian(J_couplings,T_vectors,max_NN_shell,shell_digits,n_dim)
     
+    # Perform Lanczos algorithm
     np.random.seed(187)
     lanczos_mode = reader.get_lanczos_mode()
     lanczos_par = reader.get_lanczos_par()
     results = solve_by_lanczos(hamiltonian,lanczos_mode,lanczos_par)
-    print_conclusions(results)
 
 
 if __name__ == '__main__':
