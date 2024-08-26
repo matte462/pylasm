@@ -281,6 +281,7 @@ class InputReader :
             Only Dipole-Dipole interactions are actually taken into account, so we ofter assume to
             deal with 3x3 square matrices.
         '''
+        shell_digits = self.get_shell_digits()
         J_couplings_file = self.get_J_couplings_file()
         if J_couplings_file=='NOT SPECIFIED' :
             raise ValueError(f'The J_couplings_file value is {J_couplings_file} in {self.get_config_file()}.\nSo no interaction matrices are actually read.')
@@ -378,7 +379,7 @@ class InputReader :
                 
             # Sort T vectors and J matrices in increasing order of distance
             sorted_indices = sorted(range(len(distances)), key=lambda k: distances[k])
-            distances = [round(distances[i],3) for i in sorted_indices]
+            distances = [round(distances[i],shell_digits) for i in sorted_indices]
             T_vectors = [T_vectors[i] for i in sorted_indices]
             magint_matrices = [magint_matrices[i] for i in sorted_indices]
 
@@ -400,7 +401,7 @@ class InputReader :
                 # Reset NN_index to the initial value when the NN shell distance changes
                 if distances[j-1]!=distances[j] : NN_index=0
                 
-                aux_T_vectors[f'{NN_index}'] = [round(el,3) for el in T_vectors[j-1]]
+                aux_T_vectors[f'{NN_index}'] = np.array([round(el,shell_digits) for el in T_vectors[j-1]])
                 aux_J_matrices[f'{NN_index}'] = magint_matrices[j-1]
 
                 # When NN_index is reset to 0, the last bond in the current shell is being stored

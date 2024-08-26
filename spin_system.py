@@ -215,7 +215,7 @@ class SpinSystem() :
             if shell_distances[d]==shell_distance :
                 final_shell_indices.append(shell_indices[d])
                 final_shell_vectors.append(shell_vectors[d])
-        return np.array(final_shell_indices), np.array(final_shell_vectors)
+        return final_shell_indices, final_shell_vectors
 
     def build_spin_operator(self) -> 'np.ndarray' :
         '''
@@ -276,7 +276,7 @@ class SpinSystem() :
                     # Compute the interaction term and update the Spin Hamiltonian
                     interaction_term = self.compute_pair_interaction(i,ith_NN_spins[j],J_eff)
                     H += interaction_term
-        return np.real(H)
+        return H
     
     def compute_J_eff(self,J_couplings: list,NN_vectors: list,vector: 'np.ndarray',shell_digits: int) -> 'np.ndarray' :
         '''
@@ -299,7 +299,7 @@ class SpinSystem() :
                 is_vector_found = True
                 J_eff += J_couplings[i]
             if i==len(NN_vectors)-1 and not is_vector_found :
-                raise ValueError(f'{list(vector)} could not be found among the input NN vectors.')
+                raise ValueError(f'{vector} could not be found among the input NN vectors.')
         return J_eff
     
     def compute_pair_interaction(self,first: int,second: int,J_eff: 'np.ndarray') -> 'np.ndarray' :
