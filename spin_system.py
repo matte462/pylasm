@@ -334,3 +334,40 @@ class SpinSystem() :
         aux_size = spin_mult**(Nspins-second-1)
         final_term = np.kron(np.kron(np.eye(spin_mult**first), interaction_term), np.eye(aux_size))
         return final_term
+    
+    def compute_spin_exp_value(self,state: 'np.ndarray',ref_spin: int) -> 'np.ndarray' :
+        '''
+        Returns the expectation value of the vector spin operator of the chosen magnetic site with respect
+        to the state passed as first argument.
+        
+        Args:
+            state (np.ndarray): Spinor state belonging to the Hilbert space of the composite spin system;
+            ref_spin (int): Index of the interested magnetic site. 
+        '''
+        Nspins = self.get_Nspins()
+        spin_mult = self.get_spin_mult()
+        
+        exp_value = []
+        S_vec = self.build_spin_operator()
+        for a in range(3) :
+            Sa_extended = np.kron(np.kron(np.eye(spin_mult**ref_spin), S_vec[a]), np.eye(Nspins-ref_spin))
+            Sa_expected = np.dot(np.matmul(state.conj(),Sa_extended),state.T)[0][0]
+            exp_value.append(np.real(Sa_expected))
+        return np.array(exp_value)
+    
+    def compute_magnetization(self,state: 'np.ndarray') -> 'np.ndarray' :
+        '''
+        Returns the magnetization vector of the composite spin system as proportional to the sum
+        of the spin expectation values associated with all the available magnetic sites. 
+        
+        Args:
+            state (np.ndarray): Spinor state belonging to the Hilbert space of the composite spin system.
+        '''
+        Nspins = self.get_Nspins()
+        M_vec = np.zeros(3)
+        for spin in range(Nspins) :
+            M_vec += (1.0/Nspins)*self.compute_spin_exp_value(state,spin)
+        return M_vec
+    
+    def compute_spin_correlation(self,state: 'np.ndarray',first: int,second: int,label: str) -> 'np.ndarray' :
+        pass

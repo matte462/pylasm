@@ -1,3 +1,13 @@
+2024-08-28 Matteo Costa <mattecosta48@gmail.com>
+
+    * input_reader.py: New input variables are introduced in order to let the user be more aware of the process and the potentially incoming errors.
+
+    * global_functions.py: Minor changes to the arguments of the functions implementing the Lanczos algorithm due to the new variables at play. I have also chosen not to return the Lanczos basis and directly express the eigenstates of the tridiagonal Hamiltonian matrix within the conventional spin-z basis.
+
+    * spin_system.py: I have added three new methods for the SpinSystem class; they are called compute_spin_exp_value, compute_magnetization and compute_spin_correlation. Only the first two have been actually implemented and documented so far.
+
+    * test_spin_system.py (test_compute_spin_exp_value_*): Some testing functions to check whether the compute_spin_exp_value method is well implemented. They only include two-sites S=1/2 systems and the ground state is assumed to be factorizable.
+
 2024-08-26 Matteo Costa <mattecosta48@gmail.com>
 
     * spin_system.py (build_hamiltonian): I have noticed that the returned Hamiltonian matrix should not be constrained to be real-valued. So the return statement has been changed accordingly.

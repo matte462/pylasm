@@ -649,3 +649,167 @@ def test_compute_pair_interaction_3() -> None :
     H_term = system.compute_pair_interaction(0,0,J_eff)
 
     assert np.linalg.norm(H_term-H_term_exp)==0.0
+
+def test_compute_spin_exp_value_0() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin expectation values
+    when the ground state (GS) consists of two parallel spins aligned to the z axis. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = np.array([[1.0,0.0,0.0,0.0]])
+    
+    # Spin exp. values 
+    S1 = system.compute_spin_exp_value(GS_vec,0)
+    S2 = system.compute_spin_exp_value(GS_vec,1)
+    
+    # Spin as given by Bloch representation of the single spin states
+    S1_exp = np.array([0.0,0.0,0.5])
+    S2_exp = np.array([0.0,0.0,0.5])
+    
+    assert np.linalg.norm(S1-S1_exp)==0.0
+    assert np.linalg.norm(S2-S2_exp)==0.0
+
+def test_compute_spin_exp_value_1() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin expectation values
+    when the ground state (GS) consists of two anti-parallel spins aligned to the z axis. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = np.array([[0.0,1.0,0.0,0.0]])
+    
+    # Spin exp. values 
+    S1 = system.compute_spin_exp_value(GS_vec,0)
+    S2 = system.compute_spin_exp_value(GS_vec,1)
+    
+    # Spin as given by Bloch representation of the single spin states
+    S1_exp = np.array([0.0,0.0,0.5])
+    S2_exp = np.array([0.0,0.0,-0.5])
+    
+    assert np.linalg.norm(S1-S1_exp)==0.0
+    assert np.linalg.norm(S2-S2_exp)==0.0
+
+def test_compute_spin_exp_value_2() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin expectation values
+    when the ground state (GS) consists of two perpendicular spins aligned to the z and x axes, respectively. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = (1/np.sqrt(2))*np.array([[1.0,1.0,0.0,0.0]])
+    
+    # Spin exp. values 
+    S1 = system.compute_spin_exp_value(GS_vec,0)
+    S2 = system.compute_spin_exp_value(GS_vec,1)
+    
+    # Spin as given by Bloch representation of the single spin states
+    S1_exp = np.array([0.0,0.0,0.5])
+    S2_exp = np.array([0.5,0.0,0.0])
+    
+    assert np.linalg.norm(S1-S1_exp)<1e-10
+    assert np.linalg.norm(S2-S2_exp)<1e-10
+    
+def test_compute_spin_exp_value_3() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin expectation values
+    when the ground state (GS) consists of two perpendicular spins aligned to the z and y axes, respectively.
+    This case differs from the previous one due to the introduction of imaginary parts in the GS. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = (1/np.sqrt(2))*np.array([[1.0,1.0j,0.0,0.0]])
+    
+    # Spin exp. values 
+    S1 = system.compute_spin_exp_value(GS_vec,0)
+    S2 = system.compute_spin_exp_value(GS_vec,1)
+    
+    # Spin as given by Bloch representation of the single spin states
+    S1_exp = np.array([0.0,0.0,0.5])
+    S2_exp = np.array([0.0,0.5,0.0])
+    
+    assert np.linalg.norm(S1-S1_exp)<1e-10
+    assert np.linalg.norm(S2-S2_exp)<1e-10
+
+def test_compute_spin_exp_value_4() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin expectation values
+    when the ground state (GS) consists of two parallel spins aligned to the z axis, but the single 
+    spin states differ by a phase factor.
+    It should not affect the result because of the multiplication by its complex conjugate
+    within the expectation value.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = (1/np.sqrt(2))*np.array([[1.0+1.0j,0.0,0.0,0.0]])
+    
+    # Spin exp. values 
+    S1 = system.compute_spin_exp_value(GS_vec,0)
+    S2 = system.compute_spin_exp_value(GS_vec,1)
+    
+    # Spin as given by Bloch representation of the single spin states
+    S1_exp = np.array([0.0,0.0,0.5])
+    S2_exp = np.array([0.0,0.0,0.5])
+    
+    assert np.linalg.norm(S1-S1_exp)<1e-10
+    assert np.linalg.norm(S2-S2_exp)<1e-10
+   
+def test_compute_spin_exp_value_5() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin expectation values
+    when the ground state (GS) consists of two spins with two different generic directions.
+    This case should exclude any chance that the code only works for specific "high-symmetry" 
+    spin directions.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition within Bloch representation
+    theta1 = 1.53
+    phi1 = 0.42
+    theta2 = 2.36
+    phi2 = 5.88
+    GS_a = np.cos(theta1/2)*np.cos(theta2/2)
+    GS_b = np.cos(theta1/2)*np.exp(phi2*1.0j)*np.sin(theta2/2)
+    GS_c = np.exp(phi1*1.0j)*np.sin(theta1/2)*np.cos(theta2/2)
+    GS_d = np.exp((phi1+phi2)*1.0j)*np.sin(theta1/2)*np.sin(theta2/2)
+    GS_vec = np.array([[GS_a,GS_b,GS_c,GS_d]])
+    
+    # Spin exp. values 
+    S1 = system.compute_spin_exp_value(GS_vec,0)
+    S2 = system.compute_spin_exp_value(GS_vec,1)
+    
+    # Spin as given by Bloch representation of the single spin states
+    S1_exp = np.array([0.5*np.sin(theta1)*np.cos(phi1),0.5*np.sin(theta1)*np.sin(phi1),0.5*np.cos(theta1)])
+    S2_exp = np.array([0.5*np.sin(theta2)*np.cos(phi2),0.5*np.sin(theta2)*np.sin(phi2),0.5*np.cos(theta2)])
+    
+    assert np.linalg.norm(S1-S1_exp)<1e-10
+    assert np.linalg.norm(S2-S2_exp)<1e-10
