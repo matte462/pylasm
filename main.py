@@ -29,8 +29,12 @@ def main() :
     # Perform Lanczos algorithm
     np.random.seed(187)
     lanczos_mode = reader.get_lanczos_mode()
-    lanczos_par = reader.get_lanczos_par()
-    results = solve_by_lanczos(hamiltonian,lanczos_mode,lanczos_par)
+    n_iterations = reader.get_n_iterations()
+    energy_res = reader.get_energy_res()
+    tol_imag = reader.get_tol_imag()
+    tol_ortho = reader.get_tol_ortho()
+    n_states = reader.get_n_states()
+    results = solve_by_lanczos(hamiltonian,lanczos_mode,n_iterations,energy_res,tol_imag,tol_ortho,n_states)
 
 
 if __name__ == '__main__':

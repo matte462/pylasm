@@ -72,33 +72,35 @@ def adapt_magintmatrix(matrix: 'np.ndarray') -> 'np.ndarray' :
             new_matrix[r+1][c+1] = matrix[r][c]
     return new_matrix
 
-def solve_by_lanczos(hamiltonian: 'np.ndarray',lanczos_mode: str,lanczos_par: int) :
+def solve_by_lanczos(hamiltonian: 'np.ndarray',lanczos_mode: str,n_iterations: int,energy_res: float,tol_imag: float,tol_ortho: float,n_states: int) -> list :
     '''
     Calls the proper function to perform the Lanczos algorithm for the exact diagonalization 
-    of the Spin Hamiltonian of the system by either a one-shot calculation or a 
+    of the Spin Hamiltonian of the system. Only two modes are available: a one-shot calculation or a 
     self-consistent (SCF) cycle with convergence criterion on the ground-state (GS) energy.
 
     Args:
         hamiltonian (np.ndarray): Spin Hamiltonian matrix;
         lanczos_mode (str): String indicating the chosen method for Lanczos algorithm (i.e. one-shot or SCF);
-        lanczos_par (int): The meaning of this parameter depends on lanczos_mode. 
-            If lanczos_mode="one_shot", it sets the number of iterations to perform; 
-            while if lanczos_mode="scf", it specifies the number of GS energy digits 
-            to consider when checking for the convergence criterion. 
+        n_iterations (int): Number of iterations to perform in a one-shot Lanczos calculation;
+        energy_res (float): Resolution on the GS energy for the SCF mode;
+        tol_imag (float): Tolerance on the imaginary part of Hamiltonian matrix elements;
+        tol_ortho (float): Tolerance on the non-orthogonality of the Lanczos vectors;
+        n_states (int): Number of eigenvector-eigenvalue pairs to be stored as outputs.
     '''
     label = 'One-shot'*(lanczos_mode=='one_shot')+'SCF'*(lanczos_mode=='scf')
     print(f'\n{label} Lanczos Algorithm for Exact Diagonalization')
     
     # Select the function to call depending on lanczos_mode
-    lanczos_mapping = {
-        'one_shot' : one_shot_lanczos_solver,
-        'scf' : scf_lanczos_solver
-    }
-    results = lanczos_mapping[lanczos_mode](hamiltonian,lanczos_par)
+    if lanczos_mode=='scf' :
+        print('\nSCF Lanczos Algorithm for Exact Diagonalization')
+        results = scf_lanczos_solver(hamiltonian,energy_res,tol_imag,tol_ortho,n_states)
+        return results
+    elif lanczos_mode=='one_shot' :
+        print('\nOne-shot Lanczos Algorithm for Exact Diagonalization')
+        results = one_shot_lanczos_solver(hamiltonian,n_iterations,tol_imag,tol_ortho,n_states)
+        return results
 
-    return results
-
-def one_shot_lanczos_solver(hamiltonian: 'np.ndarray',n_iterations: int) -> list :
+def one_shot_lanczos_solver(hamiltonian: 'np.ndarray',n_iterations: int,tol_imag: float,tol_ortho: float,n_states: int) -> list :
     '''
     Implements the Lanczos algorithm by a one-shot calculation with a precise number 
     of iterations. Details about the procedure and the nomenclature can be found in the 
@@ -107,10 +109,13 @@ def one_shot_lanczos_solver(hamiltonian: 'np.ndarray',n_iterations: int) -> list
     [https://people.inf.ethz.ch/arbenz/ewp/Lnotes/chapter10.pdf]
 
     Args:
-        hamiltonian (np.ndarray): Spin Hamiltonian matrix.
-        n_iterations (int): Number of iterations to perform. 
+        hamiltonian (np.ndarray): Spin Hamiltonian matrix;
+        n_iterations (int): Number of iterations to perform;
+        tol_imag (float): Tolerance on the imaginary part of Hamiltonian matrix elements;
+        tol_ortho (float): Tolerance on the non-orthogonality of the Lanczos vectors;
+        n_states (int): Number of eigenvector-eigenvalue pairs to be stored as outputs.
     '''
-    if not ishermitian(hamiltonian) :
+    if not ishermitian(hamiltonian,atol=tol_imag) :
         raise ValueError('The Spin Hamiltonian matrix is not Hermitian.')
     
     # Initial random state for the spin system
@@ -121,7 +126,7 @@ def one_shot_lanczos_solver(hamiltonian: 'np.ndarray',n_iterations: int) -> list
     # First iteration
     q = (1.0/x_norm)*x
     r = np.dot(hamiltonian,q)
-    a_1 = np.real(np.vdot(q,r))
+    a_1 = np.real_if_close(np.vdot(q,r),tol=tol_imag)
     r = r-a_1*q
     b_1 = np.linalg.norm(r)
     
@@ -137,7 +142,7 @@ def one_shot_lanczos_solver(hamiltonian: 'np.ndarray',n_iterations: int) -> list
         v = q
         q = (1/betas[-1])*r
         r = np.dot(hamiltonian,q)-betas[-1]*v
-        a_j = np.real(np.vdot(q,r))
+        a_j = np.real_if_close(np.vdot(q,r),tol=tol_imag)
         r = r-a_j*q
         for q_prime in Q_basis : r = r-np.vdot(q_prime,r)*q_prime # re-orthogonalization step
         b_j = np.linalg.norm(r)
@@ -151,26 +156,30 @@ def one_shot_lanczos_solver(hamiltonian: 'np.ndarray',n_iterations: int) -> list
         # Report the (Non-)Orthogonality of the current Lanczos basis
         is_q_orthogonal = True
         for q_prime in Q_basis :
-            is_q_orthogonal = is_q_orthogonal and bool(np.vdot(q,q_prime)<1e-5)
+            is_q_orthogonal = is_q_orthogonal and bool(np.vdot(q,q_prime)<tol_ortho)
         response = ''*(is_q_orthogonal)+'NOT '*(not is_q_orthogonal)
         print(f'{j}: New Lanczos vector is {response}orthogonal the previous ones.')
     
     # Diagonalization of the approximated Tridiagonal matrix
-    energies, states = eigh_tridiagonal(alphas,betas)
+    energies, states = eigh_tridiagonal(alphas,betas,select='i',select_range=(0,n_states-1))
+    spin_states = np.matmul(states.T,np.array(Q_basis))
     print(f'Ground-state energy: {energies[0]} eV')
 
-    return [(n_iterations, energies, states, Q_basis)]
+    return [(n_iterations, energies, spin_states)]
 
-def scf_lanczos_solver(hamiltonian: 'np.ndarray',energy_digits: int) -> list :
+def scf_lanczos_solver(hamiltonian: 'np.ndarray',energy_res: float,tol_imag: float,tol_ortho: float,n_states: float) -> list :
     '''
     Implements the Lanczos algorithm by a SCF cycle with increasing number
     of iterations. The loop is terminated as soon as the GS energy difference
-    between two subsequent one-shot calculations is lower than 10^{-energy_digits} eV.
+    between two subsequent one-shot calculations is lower than the chosen energy 
+    resolution.
 
     Args:
         hamiltonian (np.ndarray): Spin Hamiltonian matrix;
-        energy_digits (int): Number of GS energy digits to consider when checking for
-            the convergence criterion.
+        energy_res (float): Resolution on the GS energy for the SCF mode;
+        tol_imag (float): Tolerance on the imaginary part of Hamiltonian matrix elements;
+        tol_ortho (float): Tolerance on the non-orthogonality of the Lanczos vectors;
+        n_states (int): Number of eigenvector-eigenvalue pairs to be stored as outputs.
     '''
     # Quantities to be stored
     GS_energies = []
@@ -182,7 +191,7 @@ def scf_lanczos_solver(hamiltonian: 'np.ndarray',energy_digits: int) -> list :
     while not is_GS_converged :
 
         # Perform Lanczos with the current number of iterations 
-        nth_result = one_shot_lanczos_solver(hamiltonian,n)
+        nth_result = one_shot_lanczos_solver(hamiltonian,n,tol_imag,tol_ortho,n_states)
 
         # Save the results
         GS_energies.append(nth_result[0][1][0])
@@ -190,7 +199,7 @@ def scf_lanczos_solver(hamiltonian: 'np.ndarray',energy_digits: int) -> list :
 
         # Check whether convergence is achieved
         if n>=3 :
-            is_GS_converged = (np.abs(GS_energies[-1]-GS_energies[-2])<10**(-energy_digits))
+            is_GS_converged = (np.abs(GS_energies[-1]-GS_energies[-2])<energy_res)
 
         # Increment the number of iterations
         n += 1

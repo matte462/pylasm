@@ -43,14 +43,14 @@ class InputReader :
 
         # Define permitted keys per each section and the reference dictionary
         system_dict = {'struct_file_name': str,'struct_file_type': str,'mag_ion': str,'spin': float,'n_dim': int,'J_couplings_file': str,'max_NN_shell': int,'shell_digits': int}
-        lanczos_dict = {'lanczos_mode': str,'n_iterations': int,'energy_digits': int}
+        lanczos_dict = {'lanczos_mode': str,'n_iterations': int,'energy_res': int,'tol_imag': float,'tol_ortho': float,'n_states': int}
         ref_dict = {'SYSTEM': system_dict,'LANCZOS': lanczos_dict}
 
         # Define the default configuration
         default_config = configparser.ConfigParser()
         default_config.optionxform = str # Keys are case-sensitive
         default_config['SYSTEM'] = {'struct_file_name': "'NOT SPECIFIED'",'struct_file_type': "'POSCAR'",'mag_ion': "'NOT SPECIFIED'",'spin': "0.5",'n_dim': "3",'J_couplings_file': "'NOT SPECIFIED'",'max_NN_shell': "1",'shell_digits': "3"}
-        default_config['LANCZOS'] = {'lanczos_mode': "'scf'",'n_iterations': "20",'energy_digits': "6"}
+        default_config['LANCZOS'] = {'lanczos_mode': "'scf'",'n_iterations': "20",'energy_res': "6",'tol_imag': "1e-6",'tol_ortho': "1e-6",'n_states': "1"}
     
         # Initialize the effective configuration
         config = configparser.ConfigParser()
@@ -83,19 +83,12 @@ class InputReader :
                         raise TypeError(f'{key} value is not compatible with the expected type {expected_type.__name__}.')
                     ref_dict[section][key] = ast.literal_eval(value)
         
-        # Some exceptions to help the use to choose appropriate values for spin, max_NN_shell, n_iterations and energy_digits keys
+        # Some exceptions to help the use to choose appropriate values for spin, max_NN_shell, n_iterations and other keys
         if not is_spin_acceptable(ref_dict['SYSTEM']['spin']) : 
             raise ValueError(f"{ref_dict['SYSTEM']['spin']} is not acceptable as a spin quantum number.")
-        if ref_dict['SYSTEM']['n_dim']<=0 :
-            raise ValueError(f'Non-positive values for n_dim key are not permitted.')
-        if ref_dict['SYSTEM']['max_NN_shell']<=0 :
-            raise ValueError(f'Non-positive values for max_NN_shell key are not permitted.')
-        if ref_dict['SYSTEM']['shell_digits']<=0 :
-            raise ValueError(f'Non-positive values for shell_digits key are not permitted.')
-        if ref_dict['LANCZOS']['n_iterations']<=0 :
-            raise ValueError(f'Non-positive values for n_iterations key are not permitted.')
-        if ref_dict['LANCZOS']['energy_digits']<=0 :
-            raise ValueError(f'Non-positive values for energy_digits key are not permitted.')
+        for key in ['n_dim','max_NN_shell','shell_digits','n_iterations','energy_res','tol_imag','tol_ortho','n_states'] :
+            if ref_dict['SYSTEM'][key]<=0 :
+                raise ValueError('Non-positive values for '+key+' key are not permitted.')
             
         # Update the InputReader attribute
         self.config_info = ref_dict
@@ -150,8 +143,6 @@ class InputReader :
         is_selective = False
 
         # Read the content line-by-line (since POSCAR have a pre-determined structure)
-        # CHECK :   - is the format compatible with the expectations?
-        #           - is the file empty?
         with open(struct_file_name,'r') as f :
             content = f.readlines()
             if len(content)==0 :
@@ -494,20 +485,40 @@ class InputReader :
         '''
         return self.config_info['LANCZOS']['lanczos_mode']
     
-    def get_lanczos_par(self) -> float :
+    def get_n_iterations(self) -> int :
         '''
-        Returns a fundamental integer for the execution of the Lanczos algorithm.
-        Its meaning depends on the choice of the lanczos_mode value.
-        In particular, if lanczos_mode='one_shot', it stands for the exact number of Lanczos iterations to be performed;
-        while if lanczos_mode='scf', it determines the resolution on the ground-state energy as follows
-                epsilon = 10**(-energy_digits).
-        This parameter sets the convergence criterion for the self-consistent cycle of Lanczos iterations.
+        Returns the exact number of Lanczos iterations to perform, if lanczos_mode='one_shot'. 
+        Otherwise the variable in question is ignored.
         '''
-        lanczos_mode = self.get_lanczos_mode()
-        if lanczos_mode=='one_shot' : 
-            return self.config_info['LANCZOS']['n_iterations']
-        elif lanczos_mode=='scf' : 
-            return self.config_info['LANCZOS']['energy_digits']
+        return self.config_info['LANCZOS']['n_iterations']
+    
+    def get_energy_res(self) -> float :
+        '''
+        Returns the chosen resolution on the ground-state energy in eV, serving as the convergence criterion
+        for the self-consistent cycle of Lanczos iterations, i.e. if lanczos_mode='scf'.
+        '''
+        return self.config_info['LANCZOS']['energy_res']
+    
+    def get_tol_imag(self) -> float :
+        '''
+        Returns the tolerance on the imaginary parts of Hamiltonian matrix elements in general.
+        Such an assessment process is applied to both the initial Spin Hamiltonian matrix and 
+        the approximated tridiagonal one.
+        '''
+        return self.config_info['LANCZOS']['tol_imag']
+    
+    def get_tol_ortho(self) -> float :
+        '''
+        Returns the tolerance on the overlaps between Lanczos vectors' pairs, i.e. their scalar product.
+        '''
+        return self.config_info['LANCZOS']['tol_ortho']
+    
+    def get_n_states(self) -> int :
+        '''
+        Returns the number of energy eigenvalues (and thus eigenvectors) from the Lanczos algorithm 
+        to be reported as output of the calculations.
+        '''
+        return self.config_info['LANCZOS']['n_states']
     
     def get_lattice_vectors(self) -> 'np.ndarray' :
         '''
