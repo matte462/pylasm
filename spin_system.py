@@ -313,15 +313,13 @@ class SpinSystem() :
         '''
         Nspins = self.get_Nspins()
         spin_mult = self.get_spin_mult()
-
-        # Construction of spin operators
         S_vec = self.build_spin_operator()
 
         # Initialize the interaction term between the two spins
         matrix_size = spin_mult**(second-first+1)
         interaction_term = np.zeros((matrix_size, matrix_size),dtype=complex)
 
-        # Loop over all the spatial coordinates
+        # Loop over all the spatial coordinates (twice)
         for a in range(3) :
             for b in range(3) :
                 if second>first : 
@@ -346,14 +344,17 @@ class SpinSystem() :
         '''
         Nspins = self.get_Nspins()
         spin_mult = self.get_spin_mult()
-        
-        exp_value = []
         S_vec = self.build_spin_operator()
+        
+        # Initialize the spin expectation value
+        exp_value = np.zeros(3)
+        
+        # Loop over all the spatial coordinates
         for a in range(3) :
             Sa_extended = np.kron(np.kron(np.eye(spin_mult**ref_spin), S_vec[a]), np.eye(Nspins-ref_spin))
             Sa_expected = np.dot(np.matmul(state.conj(),Sa_extended),state.T)[0][0]
-            exp_value.append(np.real(Sa_expected))
-        return np.array(exp_value)
+            exp_value[a] = np.real(Sa_expected)
+        return exp_value
     
     def compute_magnetization(self,state: 'np.ndarray') -> 'np.ndarray' :
         '''
@@ -365,9 +366,44 @@ class SpinSystem() :
         '''
         Nspins = self.get_Nspins()
         M_vec = np.zeros(3)
+        
+        # Loop over all spin indices
         for spin in range(Nspins) :
             M_vec += (1.0/Nspins)*self.compute_spin_exp_value(state,spin)
+            
         return M_vec
     
-    def compute_spin_correlation(self,state: 'np.ndarray',first: int,second: int,label: str) -> 'np.ndarray' :
-        pass
+    def compute_spin_correlation(self,state: 'np.ndarray',first: int,second: int) -> 'np.ndarray' :
+        '''
+        Returns the spin-spin correlation matrix between the two chosen magnetic sites. Each element
+        is labelled by the components of the two spin operators in question and it is thus obtained 
+        by calculating the expectation value of their product.
+        Tensor products with identity matrices are also included in order to keep the order of the two
+        spins within the sequence.
+        
+        Args:
+            state (np.ndarray): Spinor state belonging to the Hilbert space of the composite spin system;
+            first (int): Index of the first magnetic site;
+            second (int): Index of the second magnetic site.
+        '''
+        Nspins = self.get_Nspins()
+        spin_mult = self.get_spin_mult()
+        S_vec = self.build_spin_operator()
+        
+        # Initialize the spin-spin correlation matrix
+        corr_matrix = np.zeros((3,3))
+
+        # Loop over all the spatial coordinates (twice)
+        for a in range(3) :
+            for b in range(3) :
+                aux_size1 = spin_mult**(second-first-1)
+                spin_product = np.kron(np.kron(S_vec[a],np.eye(aux_size1)), S_vec[b])
+
+                # Adjust the shape by the proper tensor products  
+                aux_size2 = spin_mult**(Nspins-second-1)
+                final_product = np.kron(np.kron(np.eye(spin_mult**first), spin_product), np.eye(aux_size2))
+                
+                # Perform the products with the states
+                corr_matrix[a][b] = np.dot(np.matmul(state.conj(),final_product),state.T)[0][0]
+                
+        return corr_matrix
