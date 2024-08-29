@@ -1,3 +1,9 @@
+2024-08-29 Matteo Costa <mattecosta48@gmail.com>
+
+    * spin_system.py (compute_spin_correlation): I have added implementation and documentation to the method in question, as well as minor changes to the compute_spin_exp_value and compute_magnetization methods.
+
+    * global_functions.py (save_data): The function allows the user to save all the relevant outcomes from the Lanczos calculation into a well-structured JSON file. Further suggestions about the conventional structure will be later specified. 
+
 2024-08-28 Matteo Costa <mattecosta48@gmail.com>
 
     * input_reader.py: New input variables are introduced in order to let the user be more aware of the process and the potentially incoming errors.

@@ -35,6 +35,9 @@ def main() :
     tol_ortho = reader.get_tol_ortho()
     n_states = reader.get_n_states()
     results = solve_by_lanczos(hamiltonian,lanczos_mode,n_iterations,energy_res,tol_imag,tol_ortho,n_states)
+    
+    # Save the just obtained results
+    save_data(system,results)
 
 
 if __name__ == '__main__':

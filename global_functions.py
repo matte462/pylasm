@@ -1,4 +1,5 @@
 import numpy as np
+import json
 from scipy.linalg import ishermitian, eigh_tridiagonal
 
 from spin_system import SpinSystem
@@ -205,3 +206,40 @@ def scf_lanczos_solver(hamiltonian: 'np.ndarray',energy_res: float,tol_imag: flo
         n += 1
     
     return results
+
+def save_data(system: SpinSystem,lanczos_results: list) -> None :
+    '''
+    Saves all the relevant data about the Lanczos SCF cycle or one-shot calculation, as well as
+    the spin expectation value for each site, the magnetization vector and the spin-spin 
+    correlation matrices always with respect to the just approximated GS.
+    All the items I have just mentioned are stored into a well-structured JSON file, 
+    called SPIN_OUT.json.
+    
+    Args:
+        system (SpinSystem): Physical system under study, in order to have an easier access to its properties;
+        lanczos_relults (list): Set of tuples containing the number of Lanczos iterations, the eigenenergies 
+            and the eigenstates of the approximated tridiagonal Hamiltonian matrix. 
+    '''
+    Nspins = system.get_Nspins()
+    ground_state = lanczos_results[-1][2][0]
+    
+    # Initialize a dictionary collecting all the relevant data
+    data_dict = {
+        'Lanczos': {},
+        'Spin Exp. Values': {},
+        'Magnetization': system.compute_magnetization(ground_state),
+        'Spin-Spin Corr. Matrices': {}
+    }
+    
+    # Loop over all Lanczos calculations (one or more for 'one_shot' or 'scf' modes respectively)
+    for item in lanczos_results :
+        data_dict['Lanczos'][f'Iteration {item[0]}'] = {'Energies': item[1],'States': item[2]}
+    
+    # Loop over all the spin indices
+    for n in range(Nspins) :
+        data_dict['Spin Exp. Values'][f'Spin {n}'] = system.compute_spin_exp_value(ground_state,n)
+        if n!=0 :
+            data_dict['Spin-Spin Corr. Matrices'][f'Spin_0-Spin_{n}'] = system.compute_spin_correlation(ground_state,0,n)
+    
+    with open('SPIN_OUT.json','w') as file :
+        json.dump(data_dict,file,indent=4)
