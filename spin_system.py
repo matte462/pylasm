@@ -351,7 +351,7 @@ class SpinSystem() :
         
         # Loop over all the spatial coordinates
         for a in range(3) :
-            Sa_extended = np.kron(np.kron(np.eye(spin_mult**ref_spin), S_vec[a]), np.eye(Nspins-ref_spin))
+            Sa_extended = np.kron(np.kron(np.eye(spin_mult**ref_spin), S_vec[a]), np.eye(spin_mult**(Nspins-ref_spin-1)))
             Sa_expected = np.dot(np.matmul(state.conj(),Sa_extended),state.T)[0][0]
             exp_value[a] = np.real(Sa_expected)
         return exp_value

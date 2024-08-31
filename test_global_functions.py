@@ -90,7 +90,7 @@ def test_one_shot_lanczos_solver_0() -> None :
                       [0.0,1.0,0.0],
                       [3.0+1.0j,0.0,1.0]])
         np.random.seed(104)
-        results = one_shot_lanczos_solver(H,2)
+        results = one_shot_lanczos_solver(H,2,1e-6,1e-6,1)
 
 def test_one_shot_lanczos_solver_1() -> None :
     '''
@@ -104,7 +104,7 @@ def test_one_shot_lanczos_solver_1() -> None :
     
     # Solve by Lanczos algorithm
     np.random.seed(104)
-    results = one_shot_lanczos_solver(H,4)
+    results = one_shot_lanczos_solver(H,4,1e-6,1e-6,1)
     
     # Solve by Standard Diagonalization
     eigvals = np.linalg.eigvalsh(H)
@@ -123,7 +123,7 @@ def test_one_shot_lanczos_solver_2() -> None :
     
     # Solve by Lanczos algorithm
     np.random.seed(104)
-    results = one_shot_lanczos_solver(H,4)
+    results = one_shot_lanczos_solver(H,4,1e-6,1e-6,1)
     
     # Solve by Standard Diagonalization
     eigvals = np.linalg.eigvalsh(H)
@@ -142,7 +142,7 @@ def test_one_shot_lanczos_solver_3() -> None :
     
     # Solve by Lanczos algorithm
     np.random.seed(104)
-    results = one_shot_lanczos_solver(H,4)
+    results = one_shot_lanczos_solver(H,4,1e-6,1e-6,1)
     
     # Solve by Standard Diagonalization
     eigvals = np.linalg.eigvalsh(H)
@@ -161,7 +161,7 @@ def test_scf_lanczos_solver_0() -> None :
     
     # Solve by Lanczos algorithm
     np.random.seed(104)
-    results = scf_lanczos_solver(H,6)
+    results = scf_lanczos_solver(H,6,1e-6,1e-6,1)
     
     # Solve by Standard Diagonalization
     eigvals = np.linalg.eigvalsh(H)
@@ -180,7 +180,7 @@ def test_scf_lanczos_solver_1() -> None :
     
     # Solve by Lanczos algorithm
     np.random.seed(104)
-    results = scf_lanczos_solver(H,6)
+    results = scf_lanczos_solver(H,6,1e-6,1e-6,1)
     
     # Solve by Standard Diagonalization
     eigvals = np.linalg.eigvalsh(H)
@@ -199,7 +199,7 @@ def test_scf_lanczos_solver_2() -> None :
     
     # Solve by Lanczos algorithm
     np.random.seed(104)
-    results = scf_lanczos_solver(H,6)
+    results = scf_lanczos_solver(H,6,1e-6,1e-6,1)
     
     # Solve by Standard Diagonalization
     eigvals = np.linalg.eigvalsh(H)
