@@ -1,6 +1,10 @@
 import numpy as np
 import json
 from scipy.linalg import ishermitian, eigh_tridiagonal
+import matplotlib.pyplot as plt
+import pytransform3d.plot_utils as ppu
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from spin_system import SpinSystem
 
@@ -238,8 +242,111 @@ def save_data(system: SpinSystem,lanczos_results: list) -> None :
     # Loop over all the spin indices
     for n in range(Nspins) :
         data_dict['Spin Exp. Values'][f'Spin {n}'] = system.compute_spin_exp_value(ground_state,n)
-        if n!=0 :
-            data_dict['Spin-Spin Corr. Matrices'][f'Spin_0-Spin_{n}'] = system.compute_spin_correlation(ground_state,0,n)
+        for m in range(n+1,Nspins) :
+            data_dict['Spin-Spin Corr. Matrices'][f'Spin_{n}-Spin_{m}'] = system.compute_spin_correlation(ground_state,n,m)
     
     with open('SPIN_OUT.json','w') as file :
         json.dump(data_dict,file,indent=4)
+
+def plot_data(system: SpinSystem) -> None :
+    '''
+    Shows the user two plots: one for the convergence of the just obtained Lanczos energies 
+    with respect to the number of iterations (only if more than 1 Lanczos calculation was previously
+    stored in SPIN_OUT.json) and the other for the approximated spin Ground-State (GS).
+    
+    Args:
+        system (SpinSystem): Physical system under study, in order to have an easier access to its properties.
+    '''
+    # Font Settings
+    font_dict_title = {'fontname': 'serif', 'fontweight': 'bold', 'size': 18}
+    font_dict_legend = {'family': 'serif', 'size': 13}
+    font_dict_ticks = {'fontname': 'serif', 'size': 10}
+    font_dict_labels = {'fontname': 'serif', 'size': 15}
+    
+    with open('SPIN_OUT.json','r') as file :
+        data = json.load(file)
+        
+        if len(list(data['Lanczos'].keys()))>1 :
+            
+            # Prepare the window for the Lanczos energies' plot
+            fig1, ax1 = plt.subplots()
+            ax1.set_title('Lanczos Eigenenergies',fontdict=font_dict_title)
+            ax1.set_xlabel('Iterations',fontdict=font_dict_labels)
+            ax1.set_ylabel('Energy (eV)',fontdict=font_dict_labels)
+            for texts in ax1.get_xticklabels() :
+                texts.set(fontfamily=font_dict_ticks['fontname'],fontsize=font_dict_ticks['size'])
+            for texts in ax1.get_yticklabels() :
+                texts.set(fontfamily=font_dict_ticks['fontname'],fontsize=font_dict_ticks['size'])
+            ax1.grid()
+        
+            # Adapt the data of interest for the plot
+            last_lanczos_key = list(data['Lanczos'].keys())[-1]
+            n_states = len(data['Lanczos'][last_lanczos_key]['States'])
+            energies = [[] for n in range(n_states)]
+            iterations = [[] for n in range(n_states)]
+            for key in data['Lanczos'].keys() :
+                for n in range(n_states) :
+                    if n<len(data['Lanczos'][key]['Energies']) :
+                        energies[n].append(data['Lanczos'][key]['Energies'][n])
+                        iterations[n].append(int(key[-1]))
+                    
+            # Plot the Lanczos energies vs the number of iterations
+            for n in range(n_states) :
+                ax1.plot(iterations[n],energies[n],label=f'State {n}')
+            ax1.legend(loc='best',prop=font_dict_legend)
+            plt.show()
+            fig1.savefig('LANCZOS_ENERGIES.png')
+        
+        # Prepare the window for the 3D Visualization of the Spin GS
+        fig2 = plt.figure()
+        ax2 = fig2.add_subplot(111,projection='3d')
+        ax2.set_title('Spin Ground-state',fontdict=font_dict_title)
+        ax2.set_xlabel('x (Å)',fontdict=font_dict_labels)
+        ax2.set_ylabel('y (Å)',fontdict=font_dict_labels)
+        ax2.set_zlabel('z (Å)',fontdict=font_dict_labels)
+        for texts in ax2.get_xticklabels() :
+            texts.set(fontfamily=font_dict_ticks['fontname'],fontsize=font_dict_ticks['size'])
+        for texts in ax2.get_yticklabels() :
+            texts.set(fontfamily=font_dict_ticks['fontname'],fontsize=font_dict_ticks['size'])
+        for texts in ax2.get_zticklabels() :
+            texts.set(fontfamily=font_dict_ticks['fontname'],fontsize=font_dict_ticks['size'])
+        
+        # Plot the edges of the input unit cell
+        a1, a2, a3 = system.get_latt_vecs()
+        vertices = np.array([[0.0,0.0,0.0],a1,a2,a3,a1+a2,a1+a3,a2+a3,a1+a2+a3])
+        edges = [[vertices[0], vertices[1]],
+                 [vertices[0], vertices[2]],
+                 [vertices[0], vertices[3]],
+                 [vertices[1], vertices[4]],
+                 [vertices[1], vertices[5]],
+                 [vertices[2], vertices[4]],
+                 [vertices[2], vertices[6]],
+                 [vertices[3], vertices[5]],
+                 [vertices[3], vertices[6]],
+                 [vertices[4], vertices[7]],
+                 [vertices[5], vertices[7]],
+                 [vertices[6], vertices[7]]]
+        for edge in edges:
+            ax2.plot3D(*zip(*edge), color='black',alpha=0.4)
+        
+        # Plot the Spin exp. values
+        Nspins = len(list(data['Spin Exp. Values'].keys()))
+        for n in range(Nspins) :
+            site = system.get_sites()[n]
+            spin = system.get_spin()
+            spin_vec = np.array(data['Spin Exp. Values'][f'Spin {n}'])
+            color = plt.cm.viridis(spin_vec[2])
+            spin_vec = (1.0/spin)*spin_vec
+            ppu.plot_vector(ax2, start=(site-1.5*spin_vec),
+                            direction=spin_vec, s=3.0,
+                            color=color)
+        
+        # Plot the Colorbar
+        sm = plt.cm.ScalarMappable(cmap='viridis',norm=plt.Normalize(vmin=-spin,vmax=+spin))
+        sm.set_array([])
+        cbar = plt.colorbar(sm,ax=ax2,pad=0.1,shrink=0.6,aspect=10)
+        cbar.ax.set_ylabel(r'$S_z$',fontdict=font_dict_labels,rotation='horizontal')
+        cbar.ax.set_yticks([-spin,+spin])
+        cbar.ax.set_yticklabels([str(-spin),str(+spin)],fontdict=font_dict_ticks)
+        plt.show()
+        fig2.savefig('SPIN_GS.png')

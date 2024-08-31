@@ -1,3 +1,11 @@
+2024-08-31 Matteo Costa <mattecosta48@gmail.com>
+
+    * global_functions.py (plot_data): This new function allows the user to plot the most relevant data for the just performed Lanczos calculation by reading the content of SPIN_OUT.json file. The first graph shows how the Lanczos energies converge to a finite value while increasing the number of iterations (only in SCF mode), and the second one represents a 3D visualization of the just approximated spin ground-state in order to easily identify the magnetic state in question.
+
+    * test_spin_system.py (test_compute_magnetization_*): I have added some test functions for the compute_magnetization method.
+
+    * spin_system.py & test_global_functions.py: Minor changes due the failure of some test functions.
+
 2024-08-29 Matteo Costa <mattecosta48@gmail.com>
 
     * spin_system.py (compute_spin_correlation): I have added implementation and documentation to the method in question, as well as minor changes to the compute_spin_exp_value and compute_magnetization methods.
