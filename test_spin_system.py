@@ -813,3 +813,64 @@ def test_compute_spin_exp_value_5() -> None :
     
     assert np.linalg.norm(S1-S1_exp)<1e-10
     assert np.linalg.norm(S2-S2_exp)<1e-10
+
+def test_compute_magnetization_0() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the magnetization vector
+    when the ground state (GS) consists of two parallel spins aligned to the z axis. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = np.array([[1.0,0.0,0.0,0.0]])
+    
+    # Magnetization vs Expectation
+    M_vec = system.compute_magnetization(GS_vec)
+    M_exp = np.array([0.0,0.0,0.5])
+    
+    assert np.linalg.norm(M_vec-M_exp)==0.0
+
+def test_compute_magnetization_1() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the magnetization vector
+    when the ground state (GS) consists of two parallel spins aligned to the z axis.
+    Also checks whether the choice of the spin quntum number affects the correctness.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 1.0
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = np.array([[1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]])
+    
+    # Magnetization vs Expectation
+    M_vec = system.compute_magnetization(GS_vec)
+    M_exp = np.array([0.0,0.0,1.0])
+    
+    assert np.linalg.norm(M_vec-M_exp)==0.0
+
+def test_compute_magnetization_2() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin expectation values
+    when the ground state (GS) consists of two anti-parallel spins aligned to the z axis. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = np.array([[0.0,1.0,0.0,0.0]]) 
+    
+    # Magnetization vs Expectation
+    M_vec = system.compute_magnetization(GS_vec)
+    M_exp = np.zeros(3)
+    
+    assert np.linalg.norm(M_vec-M_exp)==0.0
