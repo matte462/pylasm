@@ -1,3 +1,29 @@
+2024-09-27 Matteo Costa <mattecosta48@gmail.com>
+
+    *** MAJOR CHANGES TO THE CODE HAVE BEEN APPLIED ***
+
+    * spin_system.py (compute_*_spin_correlation*): Due to a non-trivial physical/numerical ambiguity concerning the computation of spin expectation values I have decided to return as output observables the spin-spin correlation values. They do not provide a precise description of the possible ground-state magnetic configurations (as the spin expectation values should have done), but just give a useful insight on the predicted magnetic order distinguishing between the short- and long-range domains.
+
+    * spin_system.py (compute_magnetization): I have further noticed that not always the full magnetization modulus (i.e. M = sqrt(Mx**2+My**2+Mz**2)) is the observable of interest, but sometimes one may just want to obtain the absolute value of its projection along the axes of the coordinate system (e.g. M = sqrt(Mz**2)). This fact will be probably discussed more deeply iwthin a tutorials or examples section of the project.
+
+    * spin_system.py (build_hamiltonian): New arguments tothe method have been introduced in order to check whether the Hamiltonian is Hermitian within a certain tolerance and to implement the application of an external homogeneous magnetic field. This feature may find utility in plotting magnetic phase diagrams and/or lifting ground-state degeneracies.
+
+    * global_functions.py (solve_by_lanczos): The focus of the project is now shifted towards the development of a python interface to treat composite spin systems with an already implemented version of the Lanczos algorithm. This version is called PyLanczos and published in the Git-Hub page [https://github.com/mrcdr/pylanczos.git]. It is indeed based on a efficient C++ library Lambda Lanczos [https://github.com/mrcdr/lambda-lanczos.git] also available in Git-Hub. The function I wrote allows to perform this version of the Lanczos algorithm iteratively until all the requested ground-state and excited-states manifolds are determined.
+
+    * input_reader.py (constructor): The configuration file name is now set to 'init_config.ini' by default.
+
+    * input_reader.py (read_config_file): Due to the logistic change mentioned above I have decided to modify the allowed sections' names into 'STRUCTURE', 'HAMILTONIAN' and 'OUTPUT'. At the same time, several input variables have been removed and substituted by new ones (e.g. B_field, n_excited, lanczos_digits, magn_output_mode), whose meaning can be easily understood by reading the paragraphs above. I have also adjusted the raise statements accordingly.
+
+    * input_reader.py (get_*): Getters method have slightly changed to compensate the modification of the name of the sections and the input variables.
+
+    * main.py (main): The steps within the overall procedure slightly differs, but the structure remains basically the same: Reading, Summary, System Definition, Hamiltonian Building, Lanczos Algorithm and finally Output.
+
+    * test_input_reader.py & test_spin_system.py: The old testing functions are now adjusted to the new features of the code.
+
+    * test_global_functions.py: The number of current testing functions is now drastically reduced as a result of the smaller number of the global functions.
+
+    * Inputs/TestFiles/config_file_* & init_config.ini: The old input configuration files are now adjusted to the new features of the code.
+
 2024-08-31 Matteo Costa <mattecosta48@gmail.com>
 
     * global_functions.py (plot_data): This new function allows the user to plot the most relevant data for the just performed Lanczos calculation by reading the content of SPIN_OUT.json file. The first graph shows how the Lanczos energies converge to a finite value while increasing the number of iterations (only in SCF mode), and the second one represents a 3D visualization of the just approximated spin ground-state in order to easily identify the magnetic state in question.
