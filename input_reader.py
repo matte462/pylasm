@@ -1,5 +1,6 @@
 from global_functions import *
 
+import os
 import configparser
 import ast
 import numpy as np
@@ -10,16 +11,12 @@ class InputReader :
     and provides all the parameters to the user.
     '''
 
-    def __init__(self,config_file: str) :
+    def __init__(self,config_file: str='init_config.ini') :
         '''
         Initializes a new instance of InputReader 
         and directly stores the parameters from the input files 
         into its dict attributes.
-
-        Args:
-            config_file (str):   The path to the configuration file name to be read.
         '''
-
         self.config_file = config_file
         self.config_info = {}
         self.struct_info = {}
@@ -37,25 +34,29 @@ class InputReader :
         Args:
             config_file (str): The path to the configuration file name to be read.
         '''
-
         # Define permitted sections
-        allowed_sections = ['SYSTEM','LANCZOS']
+        allowed_sections = ['STRUCTURE','HAMILTONIAN','OUTPUT']
 
         # Define permitted keys per each section and the reference dictionary
-        system_dict = {'struct_file_name': str,'struct_file_type': str,'mag_ion': str,'spin': float,'n_dim': int,'J_couplings_file': str,'max_NN_shell': int,'shell_digits': int}
-        lanczos_dict = {'lanczos_mode': str,'n_iterations': int,'energy_res': int,'tol_imag': float,'tol_ortho': float,'n_states': int}
-        ref_dict = {'SYSTEM': system_dict,'LANCZOS': lanczos_dict}
-
+        struct_dict = {'struct_file_name': str,'struct_file_type': str,'mag_ion': str,'spin': float,'n_dim': int}
+        ham_dict = {'J_couplings_file': str,'max_NN_shell': int,'shell_digits': int,'B_field': list,'tol_imag': float}
+        out_dict = {'n_excited': int,'lanczos_digits': int,'magn_output_mode': str}
+        ref_dict = {'STRUCTURE': struct_dict,'HAMILTONIAN': ham_dict,'OUTPUT': out_dict}
+        
         # Define the default configuration
         default_config = configparser.ConfigParser()
         default_config.optionxform = str # Keys are case-sensitive
-        default_config['SYSTEM'] = {'struct_file_name': "'NOT SPECIFIED'",'struct_file_type': "'POSCAR'",'mag_ion': "'NOT SPECIFIED'",'spin': "0.5",'n_dim': "3",'J_couplings_file': "'NOT SPECIFIED'",'max_NN_shell': "1",'shell_digits': "3"}
-        default_config['LANCZOS'] = {'lanczos_mode': "'scf'",'n_iterations': "20",'energy_res': "6",'tol_imag': "1e-6",'tol_ortho': "1e-6",'n_states': "1"}
+        default_config['STRUCTURE'] = {'struct_file_name': "'NOT SPECIFIED'",'struct_file_type': "'POSCAR'",'mag_ion': "'NOT SPECIFIED'",'spin': "0.5",'n_dim': "1"}
+        default_config['HAMILTONIAN'] = {'J_couplings_file': "'NOT SPECIFIED'",'max_NN_shell': "1",'shell_digits': "3",'B_field': "[0.0,0.0,0.0]",'tol_imag': "1e-6"}
+        default_config['OUTPUT'] = {'n_excited': "0",'lanczos_digits': "10",'magn_output_mode': "'M_z'"}
     
         # Initialize the effective configuration
         config = configparser.ConfigParser()
         config.optionxform = str # Keys are case-sensitive
-        config.read(config_file)
+        if os.path.exists(config_file) :
+            config.read(config_file)
+        else :
+            raise FileNotFoundError('No configuration file called init_config.ini was found within the working directory.')
     
         # Raise exception if section in config_file is not allowed
         for section in config.sections() :
@@ -83,12 +84,20 @@ class InputReader :
                         raise TypeError(f'{key} value is not compatible with the expected type {expected_type.__name__}.')
                     ref_dict[section][key] = ast.literal_eval(value)
         
-        # Some exceptions to help the use to choose appropriate values for spin, max_NN_shell, n_iterations and other keys
-        if not is_spin_acceptable(ref_dict['SYSTEM']['spin']) : 
-            raise ValueError(f"{ref_dict['SYSTEM']['spin']} is not acceptable as a spin quantum number.")
-        for key in ['n_dim','max_NN_shell','shell_digits','n_iterations','energy_res','tol_imag','tol_ortho','n_states'] :
-            if ref_dict['SYSTEM'][key]<=0 :
+        # Some exceptions to help the use to choose appropriate values for the input keys
+        if not is_spin_acceptable(ref_dict['STRUCTURE']['spin']) : 
+            raise ValueError(f"{ref_dict['STRUCTURE']['spin']} is not acceptable as a spin quantum number.")
+        if ref_dict['STRUCTURE']['n_dim']<=0 :
+            raise ValueError('Non-positive values for n_dim key are not permitted.')
+        for key in ['max_NN_shell','shell_digits','tol_imag'] :
+            if ref_dict['HAMILTONIAN'][key]<=0 :
                 raise ValueError('Non-positive values for '+key+' key are not permitted.')
+        if ref_dict['OUTPUT']['lanczos_digits']<=0 :
+            raise ValueError('Non-positive values for lanczos_digits key are not permitted.')
+        if ref_dict['OUTPUT']['n_excited']<0 :
+            raise ValueError('Negative values for n_excited key are not permitted.')
+        if ref_dict['OUTPUT']['magn_output_mode'] not in ['M_x','M_y','M_z','M_full'] :
+            raise ValueError(ref_dict['OUTPUT']['magn_output_mode']+' is not an allowed value for magn_output_mode key\\. Choose among M_x, M_y, M_z or M_full according to the desired definition of the magnetization.')
             
         # Update the InputReader attribute
         self.config_info = ref_dict
@@ -98,11 +107,12 @@ class InputReader :
         Reads the structural properties of the spin system under study
         depending on the format declared in the configuration file.
         '''
-    
         struct_file_name = self.get_struct_file_name()
+        mag_ion = self.get_mag_ion()
+        
+        # Raise Exceptions when needed
         if struct_file_name=='NOT SPECIFIED' :
             raise ValueError(f'The struct_file_name value is {struct_file_name} in {self.get_config_file()}.\nSo no structure is actually read.')
-        mag_ion = self.get_mag_ion()
         if mag_ion=='NOT SPECIFIED' :
             raise ValueError(f'The mag_ion value is {mag_ion} in {self.get_config_file()}.\nSo no structure is actually read.')
         # Symbols for the elements do not contain more than 2 characters
@@ -110,6 +120,8 @@ class InputReader :
         # unlikely to be used in condensed matter physics' applications or studies. 
         elif len(mag_ion)>2 or len(mag_ion)==0 :
             raise ValueError(f'{mag_ion} does not belong to the periodic table of elements.')
+        
+        # Select the proper reading function according to the declared structure file type
         struct_file_type = self.get_struct_file_type()
         struct_mapping = {
             'POSCAR': InputReader.read_POSCAR,
@@ -118,6 +130,7 @@ class InputReader :
             'PWI': InputReader.read_PWI
         }
         lattice_vectors, mag_ions_pos = struct_mapping[struct_file_type](self)
+        
         self.struct_info = {
             'lattice_vectors': lattice_vectors,
             'mag_ions_pos': mag_ions_pos
@@ -128,7 +141,6 @@ class InputReader :
         Returns the lattice vectors and the sites of the magnetic ions
         in case the format follows the standard conventions for POSCAR files. 
         '''
-
         struct_file_name = self.get_struct_file_name()
         mag_ion = self.get_mag_ion()
 
@@ -269,11 +281,13 @@ class InputReader :
         accordingly.
 
         Note:
-            Only Dipole-Dipole interactions are actually taken into account, so we ofter assume to
+            Only Dipole-Dipole interactions are actually taken into account, so we often assume to
             deal with 3x3 square matrices.
         '''
         shell_digits = self.get_shell_digits()
         J_couplings_file = self.get_J_couplings_file()
+        
+        # Raise Exceptions when needed
         if J_couplings_file=='NOT SPECIFIED' :
             raise ValueError(f'The J_couplings_file value is {J_couplings_file} in {self.get_config_file()}.\nSo no interaction matrices are actually read.')
 
@@ -359,7 +373,7 @@ class InputReader :
                                     if len(row)!=3 :
                                         raise ValueError(f'The content of {current_row+3+n+1}-th line in {J_couplings_file} differs from what is expected.')
                                     for j in range(len(row)) :
-                                        if row[j].replace('.','').isdigit() :
+                                        if row[j].replace('.','').replace('-','').isdigit() :
                                             matrix[n][j] = float(row[j])
                                         else :
                                             raise TypeError(f'{row[j]} is read in the {current_row+3+n+1}-th line in {J_couplings_file}, while a J coupling constant is expected.')
@@ -435,69 +449,59 @@ class InputReader :
         '''
         Returns the name of the structure file.
         '''
-        return self.config_info['SYSTEM']['struct_file_name']
+        return self.config_info['STRUCTURE']['struct_file_name']
     
     def get_struct_file_type(self) -> str :
         '''
         Returns the chosen structure file format if specified in the configuration file or simply POSCAR otherwise.
         '''
-        return self.config_info['SYSTEM']['struct_file_type']
+        return self.config_info['STRUCTURE']['struct_file_type']
     
     def get_mag_ion(self) -> str :
         '''
         Returns the symbol for the magnetic element of interest.
         '''
-        return self.config_info['SYSTEM']['mag_ion']
+        return self.config_info['STRUCTURE']['mag_ion']
     
     def get_spin(self) -> float :
         '''
         Returns the spin quantum number read from the configuration file.
         '''
-        return self.config_info['SYSTEM']['spin']
+        return self.config_info['STRUCTURE']['spin']
     
     def get_n_dim(self) -> int :
         '''
-        Returns the number of spatial dimensions of the system in question if specified in the configuration file or directly 3 otherwise.
+        Returns the number of spatial dimensions of the system in question if specified
+        in the configuration file or directly 3 otherwise.
         '''
-        return self.config_info['SYSTEM']['n_dim']
+        return self.config_info['STRUCTURE']['n_dim']
     
     def get_J_couplings_file(self) -> str :
         '''
         Returns the name of the MagInt output file.
         '''
-        return self.config_info['SYSTEM']['J_couplings_file']
+        return self.config_info['HAMILTONIAN']['J_couplings_file']
     
     def get_max_NN_shell(self) -> int :
         '''
-        Returns the chosen number of NN shells if specified in the configuration file or directly 1 otherwise.
+        Returns the chosen number of NN shells if specified in the configuration file
+        or directly 1 otherwise.
         '''
-        return self.config_info['SYSTEM']['max_NN_shell']
+        return self.config_info['HAMILTONIAN']['max_NN_shell']
     
     def get_shell_digits(self) -> int :
         '''
-        Returns the number of digits to identify the NN shells by distance if specified in the configuration file or directly 3 otherwise.
+        Returns the number of digits to identify the NN shells by distance if specified
+        in the configuration file or directly 3 otherwise.
         '''
-        return self.config_info['SYSTEM']['max_NN_shell']
+        return self.config_info['HAMILTONIAN']['shell_digits']
     
-    def get_lanczos_mode(self) -> str :
+    def get_B_field(self) -> 'np.ndarray' :
         '''
-        Returns the chosen execution mode of the Lanczos algorithm for Exact Diagonalization.
+        Returns the 3D vector for the applied magnetic field B
+        within the coordinate system of the spin quantization axis.
         '''
-        return self.config_info['LANCZOS']['lanczos_mode']
-    
-    def get_n_iterations(self) -> int :
-        '''
-        Returns the exact number of Lanczos iterations to perform, if lanczos_mode='one_shot'. 
-        Otherwise the variable in question is ignored.
-        '''
-        return self.config_info['LANCZOS']['n_iterations']
-    
-    def get_energy_res(self) -> float :
-        '''
-        Returns the chosen resolution on the ground-state energy in eV, serving as the convergence criterion
-        for the self-consistent cycle of Lanczos iterations, i.e. if lanczos_mode='scf'.
-        '''
-        return self.config_info['LANCZOS']['energy_res']
+        return np.array(self.config_info['HAMILTONIAN']['B_field'])
     
     def get_tol_imag(self) -> float :
         '''
@@ -505,20 +509,27 @@ class InputReader :
         Such an assessment process is applied to both the initial Spin Hamiltonian matrix and 
         the approximated tridiagonal one.
         '''
-        return self.config_info['LANCZOS']['tol_imag']
+        return self.config_info['HAMILTONIAN']['tol_imag']
     
-    def get_tol_ortho(self) -> float :
+    def get_n_excited(self) -> int :
         '''
-        Returns the tolerance on the overlaps between Lanczos vectors' pairs, i.e. their scalar product.
+        Returns the number of excited non-degenarate eigenstates  to be estimated by the Lanczos algorithm. 
         '''
-        return self.config_info['LANCZOS']['tol_ortho']
+        return self.config_info['OUTPUT']['n_excited']
     
-    def get_n_states(self) -> int :
+    def get_lanczos_digits(self) -> int :
         '''
-        Returns the number of energy eigenvalues (and thus eigenvectors) from the Lanczos algorithm 
-        to be reported as output of the calculations.
+        Returns the number of digits of the Lanczos eigenvalues and eigenvectors that the user intends to store and use
+        while computing the expectation value of the observables.
         '''
-        return self.config_info['LANCZOS']['n_states']
+        return self.config_info['OUTPUT']['lanczos_digits']
+    
+    def get_magn_output_mode(self) -> str :
+        '''
+        Returns the chosen definition of the magnetization modulus operator. It also 
+        affects how the spin-spin correlation values will be determined.
+        '''
+        return self.config_info['OUTPUT']['magn_output_mode']
     
     def get_lattice_vectors(self) -> 'np.ndarray' :
         '''
