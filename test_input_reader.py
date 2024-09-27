@@ -11,31 +11,32 @@ def test_read_config_file_0() -> None :
     '''
     # Expected default configuration
     default_settings = {}
-    default_settings['SYSTEM'] = {'struct_file_name': 'NOT SPECIFIED','struct_file_type': 'POSCAR','mag_ion': 'NOT SPECIFIED','spin': 0.5,'n_dim': 3,'J_couplings_file': 'NOT SPECIFIED','max_NN_shell': 1, 'shell_digits': 3}
-    default_settings['LANCZOS'] = {'lanczos_mode': 'scf','n_iterations': 20,'energy_digits': 6}
+    default_settings['STRUCTURE'] = {'struct_file_name': 'NOT SPECIFIED','struct_file_type': 'POSCAR','mag_ion': 'NOT SPECIFIED','spin': 0.5,'n_dim': 1}
+    default_settings['HAMILTONIAN'] = {'J_couplings_file': 'NOT SPECIFIED','max_NN_shell': 1,'shell_digits': 3,'B_field': [0.0,0.0,0.0],'tol_imag': 1e-6}
+    default_settings['OUTPUT'] = {'n_excited': 0,'lanczos_digits': 10,'magn_output_mode': 'M_z'}
 
     # Effective configuration to be tested
     reader = InputReader('./Inputs/TestFiles/config_file_3.ini')
     read_settings = reader.get_config_info()
 
     # The values of struct_file_name, mag_ion, J_couplings_file keys still need to be fixed
-    default_settings['SYSTEM']['struct_file_name'] = './Inputs/TestFiles/POSCAR_test_2.vasp'
-    default_settings['SYSTEM']['mag_ion'] = 'Ag'
-    default_settings['SYSTEM']['J_couplings_file'] = './Inputs/TestFiles/V_Mult_1.dat'
+    default_settings['STRUCTURE']['struct_file_name'] = './Inputs/TestFiles/POSCAR_test_2.vasp'
+    default_settings['STRUCTURE']['mag_ion'] = 'Ag'
+    default_settings['HAMILTONIAN']['J_couplings_file'] = './Inputs/TestFiles/V_Mult_1.dat'
     assert read_settings==default_settings
 
 def test_read_config_file_1() -> None :
     '''
     Tests that the proper Exception is raised when the name of a section is mistyped or not allowed.
     '''
-    with pytest.raises(ValueError, match='SSTEM is not a valid section name.') : 
+    with pytest.raises(ValueError, match='STUCTURE is not a valid section name.') : 
         reader = InputReader('./Inputs/TestFiles/config_file_4.ini')
 
 def test_read_config_file_2() -> None :
     '''
     Tests that the proper Exception is raised when a key is mistyped or not allowed.
     '''
-    with pytest.raises(KeyError, match='ma_ion is not a valid SYSTEM key.') : 
+    with pytest.raises(KeyError, match='ma_ion is not a valid STRUCTURE key.') : 
         reader = InputReader('./Inputs/TestFiles/config_file_5.ini')
 
 def test_read_config_file_3() -> None :
@@ -44,7 +45,7 @@ def test_read_config_file_3() -> None :
     a key are mistyped or not allowed.
     The code is written so as to give higher priority to the first error.
     '''
-    with pytest.raises(ValueError, match='SSTEM is not a valid section name.') : 
+    with pytest.raises(ValueError, match='STUCTURE is not a valid section name.') : 
         reader = InputReader('./Inputs/TestFiles/config_file_6.ini')
 
 def test_read_config_file_4() -> None :
@@ -65,10 +66,10 @@ def test_read_config_file_5() -> None :
 
 def test_read_config_file_6() -> None :
     '''
-    Tests that the proper Exception is raised when the n_iterations value is non-positive.
+    Tests that the proper Exception is raised when the n_excited value is negative.
     Same behaviour should be valid for max_NN_shell, shell_digits and energy_digits.
     ''' 
-    with pytest.raises(ValueError, match='Non-positive values for n_iterations key are not permitted.') :
+    with pytest.raises(ValueError, match='Negative values for n_excited key are not permitted.') :
         reader = InputReader('./Inputs/TestFiles/config_file_13.ini')
 
 def test_read_config_file_7() -> None :
@@ -82,20 +83,24 @@ def test_read_config_file_7() -> None :
 
     # Expected configuration
     exp_settings = {}
-    exp_settings['SYSTEM'] = {
+    exp_settings['STRUCTURE'] = {
         'struct_file_name': './Inputs/TestFiles/POSCAR_test_2.vasp',
         'struct_file_type': 'POSCAR',
         'mag_ion': 'Ag',
         'spin': 1.5,
-        'n_dim': 2,
+        'n_dim': 2
+    }
+    exp_settings['HAMILTONIAN'] = {
         'J_couplings_file': './Inputs/TestFiles/V_Mult_1.dat',
         'max_NN_shell': 2,
-        'shell_digits': 4
+        'shell_digits': 4,
+        'B_field': [0.5,0.5,0.5],
+        'tol_imag': 1e-2
     }
-    exp_settings['LANCZOS'] = {
-        'lanczos_mode': 'one_shot',
-        'n_iterations': 12,
-        'energy_digits': 8
+    exp_settings['OUTPUT'] = {
+        'n_excited': 2,
+        'lanczos_digits': 8,
+        'magn_output_mode': 'M_full'
     }
 
     assert read_settings==exp_settings

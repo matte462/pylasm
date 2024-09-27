@@ -277,7 +277,7 @@ def test_build_hamiltonian_0() -> None :
                         [0.0,-0.5,1.0,0.0],
                         [0.0,1.0,-0.5,0.0],
                         [0.0,0.0,0.0,0.5]])
-    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,1)
+    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,np.zeros(3),1,1e-4)
 
     assert np.linalg.norm(H_1-H_1_exp)==0.0
 
@@ -288,8 +288,8 @@ def test_build_hamiltonian_1() -> None :
     Only first and second NN shells are taken into account.
     '''
     # Structural properties of the system
-    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    latt_vecs = np.array([[1.5,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0],[1.0,0.0,0.0]])
     spin = 0.5
     system = SpinSystem(latt_vecs,sites,spin)
 
@@ -298,11 +298,15 @@ def test_build_hamiltonian_1() -> None :
     NN_vectors = [[[-0.5,0.0,0.0],[0.5,0.0,0.0]],[[-1.0,0.0,0.0],[1.0,0.0,0.0]]]
 
     # Expected vs Computed Spin Hamiltonian (up to second NN shell)
-    H_2_exp = np.array([[3.5,0.0,0.0,0.0],
-                        [0.0,2.5,1.0,0.0],
-                        [0.0,1.0,2.5,0.0],
-                        [0.0,0.0,0.0,3.5]])
-    H_2 = system.build_hamiltonian(J_couplings,NN_vectors,2,3,1)
+    H_2_exp = np.array([[1.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+                        [0.0,-0.5,1.0,0.0,1.0,0.0,0.0,0.0],
+                        [0.0,1.0,-0.5,0.0,1.0,0.0,0.0,0.0],
+                        [0.0,0.0,0.0,-0.5,0.0,1.0,1.0,0.0],
+                        [0.0,1.0,1.0,0.0,-0.5,0.0,0.0,0.0],
+                        [0.0,0.0,0.0,1.0,0.0,-0.5,1.0,0.0],
+                        [0.0,0.0,0.0,1.0,0.0,1.0,-0.5,0.0],
+                        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.5]])
+    H_2 = system.build_hamiltonian(J_couplings,NN_vectors,2,3,np.zeros(3),1,1e-4)
 
     assert np.linalg.norm(H_2-H_2_exp)==0.0
 
@@ -327,32 +331,37 @@ def test_build_hamiltonian_2() -> None :
                         [0.0,-1.0,2.0,0.0],
                         [0.0,2.0,-1.0,0.0],
                         [0.0,0.0,0.0,1.0]])
-    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,2)
+    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,np.zeros(3),2,1e-4)
 
     assert np.linalg.norm(H_1-H_1_exp)==0.0
 
 def test_build_hamiltonian_3() -> None :
     '''
     Tests that the method returns the proper hamiltonian matrix when provided with a 
-    two-sites 2D S=1/2 system and Heisenberg-like exchange interaction matrices. 
+    three-sites 2D S=1/2 system and Heisenberg-like exchange interaction matrices. 
     Only first and second NN shells are taken into account.
     '''
     # Structural properties of the system
-    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[0.5,0.5,0.0]])
+    latt_vecs = np.array([[1.5,0.0,0.0],[0.0,1.5,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.5,0.0],[1.0,1.0,0.0]])
     spin = 0.5
     system = SpinSystem(latt_vecs,sites,spin)
 
     # Setting the J couplings
-    J_couplings = [[np.eye(3),np.eye(3),np.eye(3),np.eye(3)],[np.eye(3),np.eye(3),np.eye(3),np.eye(3)]]
-    NN_vectors = [[[0.5,0.5,0.0],[0.5,-0.5,0.0],[-0.5,0.5,0.0],[-0.5,-0.5,0.0]],[[1.0,0.0,0.0],[-1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,-1.0,0.0]]]
+    J_couplings = [[np.eye(3) for i in range(4)],[np.eye(3) for i in range(4)]]
+    NN_vectors = [[[0.5,0.5,0.0],[0.5,-0.5,0.0],[-0.5,0.5,0.0],[-0.5,-0.5,0.0]],
+                  [[1.0,-0.5,0.0],[-1.0,0.5,0.0],[-0.5,1.0,0.0],[0.5,-1.0,0.0]]]
 
     # Expected vs Computed Spin Hamiltonian (up to second NN shell)
-    H_2_exp = np.array([[7.0,0.0,0.0,0.0],
-                        [0.0,5.0,2.0,0.0],
-                        [0.0,2.0,5.0,0.0],
-                        [0.0,0.0,0.0,7.0]])
-    H_2 = system.build_hamiltonian(J_couplings,NN_vectors,2,3,2)
+    H_2_exp = np.array([[2.25,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+                        [0.0,-0.75,1.5,0.0,1.5,0.0,0.0,0.0],
+                        [0.0,1.5,-0.75,0.0,1.5,0.0,0.0,0.0],
+                        [0.0,0.0,0.0,-0.75,0.0,1.5,1.5,0.0],
+                        [0.0,1.5,1.5,0.0,-0.75,0.0,0.0,0.0],
+                        [0.0,0.0,0.0,1.5,0.0,-0.75,1.5,0.0],
+                        [0.0,0.0,0.0,1.5,0.0,1.5,-0.75,0.0],
+                        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.25]])
+    H_2 = system.build_hamiltonian(J_couplings,NN_vectors,2,3,np.zeros(3),2,1e-4)
 
     assert np.linalg.norm(H_2-H_2_exp)==0.0
 
@@ -389,7 +398,7 @@ def test_build_hamiltonian_4() -> None :
                         [0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0],
                         [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.0,0.0],
                         [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0]])
-    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,2)
+    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,np.zeros(3),2,1e-4)
 
     assert np.linalg.norm(H_1-H_1_exp)==0.0
 
@@ -414,7 +423,7 @@ def test_build_hamiltonian_5() -> None :
                         [0.0,-2.0,4.0,0.0],
                         [0.0,4.0,-2.0,0.0],
                         [0.0,0.0,0.0,2.0]])
-    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,3)
+    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,np.zeros(3),3,1e-4)
 
     assert np.linalg.norm(H_1-H_1_exp)==0.0
 
@@ -425,23 +434,28 @@ def test_build_hamiltonian_6() -> None :
     Only first and second NN shells are taken into account.
     '''
     # Structural properties of the system
-    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
-    sites = np.array([[0.0,0.0,0.0],[0.5,0.5,0.5]])
+    latt_vecs = np.array([[1.5,0.0,0.0],[0.0,1.5,0.0],[0.0,0.0,1.5]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.5,0.5],[1.0,1.0,1.0]])
     spin = 0.5
     system = SpinSystem(latt_vecs,sites,spin)
 
     # Setting the J couplings
-    J_couplings = [[np.eye(3),np.eye(3),np.eye(3),np.eye(3),np.eye(3),np.eye(3),np.eye(3),np.eye(3)],
-                   [np.eye(3),np.eye(3),np.eye(3),np.eye(3),np.eye(3),np.eye(3)]]
+    J_couplings = [[np.eye(3) for i in range(8)],
+                   [np.eye(3) for i in range(6)]]
     NN_vectors = [[[0.5,0.5,0.5],[0.5,0.5,-0.5],[0.5,-0.5,0.5],[-0.5,0.5,0.5],[0.5,-0.5,-0.5],[-0.5,0.5,-0.5],[-0.5,-0.5,0.5],[-0.5,-0.5,-0.5]],
-                  [[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0],[-1.0,0.0,0.0],[0.0,-1.0,0.0],[0.0,0.0,-1.0]]]
+                  [[1.0,-0.5,-0.5],[-0.5,1.0,-0.5],[-0.5,-0.5,1.0],[0.5,0.5,-1.0],[0.5,-1.0,0.5],[-1.0,0.5,0.5]]]
 
     # Expected vs Computed Spin Hamiltonian (up to second NN shell)
-    H_2_exp = np.array([[11.0,0.0,0.0,0.0],
-                        [0.0,7.0,4.0,0.0],
-                        [0.0,4.0,7.0,0.0],
-                        [0.0,0.0,0.0,11.0]])
-    H_2 = system.build_hamiltonian(J_couplings,NN_vectors,2,3,3)
+    H_2_exp = np.array([[3.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+                        [0.0,-1.0,2.0,0.0,2.0,0.0,0.0,0.0],
+                        [0.0,2.0,-1.0,0.0,2.0,0.0,0.0,0.0],
+                        [0.0,0.0,0.0,-1.0,0.0,2.0,2.0,0.0],
+                        [0.0,2.0,2.0,0.0,-1.0,0.0,0.0,0.0],
+                        [0.0,0.0,0.0,2.0,0.0,-1.0,2.0,0.0],
+                        [0.0,0.0,0.0,2.0,0.0,2.0,-1.0,0.0],
+                        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.0]])
+    H_2 = system.build_hamiltonian(J_couplings,NN_vectors,2,3,np.zeros(3),3,1e-4)
+    print(np.real(H_2).tolist())
 
     assert np.linalg.norm(H_2-H_2_exp)==0.0
 
@@ -471,7 +485,7 @@ def test_build_hamiltonian_7() -> None :
                         [0.0,0.0,0.0,0.0,2.0,0.0,-2.0,0.0,0.0],
                         [0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0],
                         [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0]])
-    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,1)
+    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,np.zeros(3),1,1e-4)
 
     assert np.linalg.norm(H_1-H_1_exp)<1e-10
     
@@ -498,9 +512,29 @@ def test_build_hamiltonian_8() -> None :
                         [0.0,-0.5,1.0,0.0],
                         [0.0,1.0,-0.5,0.0],
                         [1.0j,0.0,0.0,0.5]])
-    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,1)
+    H_1 = system.build_hamiltonian(J_couplings,NN_vectors,1,3,np.zeros(3),1,1e-4)
 
     assert np.linalg.norm(H_1-H_1_exp)==0.0
+
+def test_build_hamiltonian_9() -> None :
+    '''
+    Tests that the proper Exception is raised when the method is about to include the pair interaction term
+    between the reference spin and one of its replica.
+    No (quadratic) pair interaction is allowed when the spins in question are associated to the same label.
+    '''
+    with pytest.raises(ValueError, match='The 2° NN shell for spin 0 includes some/all of its replica. Consider decreasing the max_NN_shell value or taking a larger unit cell.') :
+       
+       # Structural properties of the system
+        latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
+        sites = np.array([[0.0,0.0,0.0],[0.5,0.5,0.5]])
+        system = SpinSystem(latt_vecs,sites,0.5)
+        
+        # Set the J couplings and the associated NN vectors
+        J_couplings = [[np.eye(3) for i in range(8)],[np.eye(3) for i in range(6)]]
+        NN_vecs = [[np.array([-0.5,-0.5,-0.5]),np.array([0.5,0.5,0.5]),np.array([0.5,0.5,-0.5]),np.array([0.5,-0.5,0.5]),np.array([0.5,-0.5,-0.5]),np.array([-0.5,0.5,0.5]),np.array([-0.5,0.5,-0.5]),np.array([-0.5,-0.5,0.5])],
+                   [np.array([1.0,0.0,0.0]),np.array([0.0,1.0,0.0]),np.array([0.0,0.0,1.0]),np.array([0.0,0.0,-1.0]),np.array([0.0,-1.0,0.0]),np.array([-1.0,0.0,0.0])]]
+
+        H = system.build_hamiltonian(J_couplings,NN_vecs,2,3,np.zeros(3),3,1e-4)
 
 def test_compute_J_eff_0() -> None :
     '''
@@ -631,246 +665,126 @@ def test_compute_pair_interaction_2() -> None :
 def test_compute_pair_interaction_3() -> None :
     '''
     Tests that the contribution to the spin Hamiltonian from the exchange interaction 
-    between two NN spins in a three-sites 1D S=1/2 system is properly computed.
-    In particular, the indices of the chosen spins are exactly equal. 
-    This case can only occur due to the periodic boundary conditions.
+    between two NN spins in a three-sites 1D S=1/2 system is not allowed since their indices 
+    coincide. An Exception is thus raised.
+    '''
+    with pytest.raises(ValueError, match='The interaction term between spins 0 and 0 is not allowed.') :
+        # Structural properties of the system
+        latt_vecs = np.array([[3.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+        sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0]])
+        spin = 0.5
+        system = SpinSystem(latt_vecs,sites,spin)
+
+        # Setting the effective J coupling
+        J_eff = np.eye(3)
+
+        # Contribution to the Spin Hamiltonian
+        H_term = system.compute_pair_interaction(0,0,J_eff)
+
+def test_compute_spin_correlation_0() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin-spin correlation value
+    when the ground state (GS) is non-degenerate and consists of four parallel spins aligned to the z axis. 
     '''
     # Structural properties of the system
-    latt_vecs = np.array([[3.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0]])
-    spin = 0.5
-    system = SpinSystem(latt_vecs,sites,spin)
-
-    # Setting the effective J coupling
-    J_eff = 4.0*np.eye(3)
-
-    # Expected vs Computed contribution to the Spin Hamiltonian
-    H_term_exp = 3.0*np.eye(8)
-    H_term = system.compute_pair_interaction(0,0,J_eff)
-
-    assert np.linalg.norm(H_term-H_term_exp)==0.0
-
-def test_compute_spin_exp_value_0() -> None :
-    '''
-    Tests that the method in question allows a correct estimation of the spin expectation values
-    when the ground state (GS) consists of two parallel spins aligned to the z axis. 
-    '''
-    # Structural properties of the system
-    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    latt_vecs = np.array([[4.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0],[3.0,0.0,0.0]])
     spin = 0.5
     system = SpinSystem(latt_vecs,sites,spin)
     
     # GS definition
-    GS_vec = np.array([[1.0,0.0,0.0,0.0]])
+    GS_vec = np.array([[1.0*(i==0) for i in range(16)]]).T
     
-    # Spin exp. values 
-    S1 = system.compute_spin_exp_value(GS_vec,0)
-    S2 = system.compute_spin_exp_value(GS_vec,1)
+    # Spin-spin Correlation value vs Expectation
+    SS_val = system.compute_spin_correlation(GS_vec,1,0,1)
+    SS_exp = np.array([0.0,0.0,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
     
-    # Spin as given by Bloch representation of the single spin states
-    S1_exp = np.array([0.0,0.0,0.5])
-    S2_exp = np.array([0.0,0.0,0.5])
-    
-    assert np.linalg.norm(S1-S1_exp)==0.0
-    assert np.linalg.norm(S2-S2_exp)==0.0
+    # Spin-spin Correlation value vs Expectation
+    SS_val = system.compute_spin_correlation(GS_vec,1,1,1)
+    SS_exp = np.array([0.25,0.25,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
 
-def test_compute_spin_exp_value_1() -> None :
-    '''
-    Tests that the method in question allows a correct estimation of the spin expectation values
-    when the ground state (GS) consists of two anti-parallel spins aligned to the z axis. 
-    '''
-    # Structural properties of the system
-    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
-    spin = 0.5
-    system = SpinSystem(latt_vecs,sites,spin)
-    
-    # GS definition
-    GS_vec = np.array([[0.0,1.0,0.0,0.0]])
-    
-    # Spin exp. values 
-    S1 = system.compute_spin_exp_value(GS_vec,0)
-    S2 = system.compute_spin_exp_value(GS_vec,1)
-    
-    # Spin as given by Bloch representation of the single spin states
-    S1_exp = np.array([0.0,0.0,0.5])
-    S2_exp = np.array([0.0,0.0,-0.5])
-    
-    assert np.linalg.norm(S1-S1_exp)==0.0
-    assert np.linalg.norm(S2-S2_exp)==0.0
-
-def test_compute_spin_exp_value_2() -> None :
-    '''
-    Tests that the method in question allows a correct estimation of the spin expectation values
-    when the ground state (GS) consists of two perpendicular spins aligned to the z and x axes, respectively. 
-    '''
-    # Structural properties of the system
-    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
-    spin = 0.5
-    system = SpinSystem(latt_vecs,sites,spin)
-    
-    # GS definition
-    GS_vec = (1/np.sqrt(2))*np.array([[1.0,1.0,0.0,0.0]])
-    
-    # Spin exp. values 
-    S1 = system.compute_spin_exp_value(GS_vec,0)
-    S2 = system.compute_spin_exp_value(GS_vec,1)
-    
-    # Spin as given by Bloch representation of the single spin states
-    S1_exp = np.array([0.0,0.0,0.5])
-    S2_exp = np.array([0.5,0.0,0.0])
-    
-    assert np.linalg.norm(S1-S1_exp)<1e-10
-    assert np.linalg.norm(S2-S2_exp)<1e-10
-    
-def test_compute_spin_exp_value_3() -> None :
-    '''
-    Tests that the method in question allows a correct estimation of the spin expectation values
-    when the ground state (GS) consists of two perpendicular spins aligned to the z and y axes, respectively.
-    This case differs from the previous one due to the introduction of imaginary parts in the GS. 
-    '''
-    # Structural properties of the system
-    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
-    spin = 0.5
-    system = SpinSystem(latt_vecs,sites,spin)
-    
-    # GS definition
-    GS_vec = (1/np.sqrt(2))*np.array([[1.0,1.0j,0.0,0.0]])
-    
-    # Spin exp. values 
-    S1 = system.compute_spin_exp_value(GS_vec,0)
-    S2 = system.compute_spin_exp_value(GS_vec,1)
-    
-    # Spin as given by Bloch representation of the single spin states
-    S1_exp = np.array([0.0,0.0,0.5])
-    S2_exp = np.array([0.0,0.5,0.0])
-    
-    assert np.linalg.norm(S1-S1_exp)<1e-10
-    assert np.linalg.norm(S2-S2_exp)<1e-10
-
-def test_compute_spin_exp_value_4() -> None :
-    '''
-    Tests that the method in question allows a correct estimation of the spin expectation values
-    when the ground state (GS) consists of two parallel spins aligned to the z axis, but the single 
-    spin states differ by a phase factor.
-    It should not affect the result because of the multiplication by its complex conjugate
-    within the expectation value.
-    '''
-    # Structural properties of the system
-    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
-    spin = 0.5
-    system = SpinSystem(latt_vecs,sites,spin)
-    
-    # GS definition
-    GS_vec = (1/np.sqrt(2))*np.array([[1.0+1.0j,0.0,0.0,0.0]])
-    
-    # Spin exp. values 
-    S1 = system.compute_spin_exp_value(GS_vec,0)
-    S2 = system.compute_spin_exp_value(GS_vec,1)
-    
-    # Spin as given by Bloch representation of the single spin states
-    S1_exp = np.array([0.0,0.0,0.5])
-    S2_exp = np.array([0.0,0.0,0.5])
-    
-    assert np.linalg.norm(S1-S1_exp)<1e-10
-    assert np.linalg.norm(S2-S2_exp)<1e-10
-   
-def test_compute_spin_exp_value_5() -> None :
-    '''
-    Tests that the method in question allows a correct estimation of the spin expectation values
-    when the ground state (GS) consists of two spins with two different generic directions.
-    This case should exclude any chance that the code only works for specific "high-symmetry" 
-    spin directions.
-    '''
-    # Structural properties of the system
-    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
-    spin = 0.5
-    system = SpinSystem(latt_vecs,sites,spin)
-    
-    # GS definition within Bloch representation
-    theta1 = 1.53
-    phi1 = 0.42
-    theta2 = 2.36
-    phi2 = 5.88
-    GS_a = np.cos(theta1/2)*np.cos(theta2/2)
-    GS_b = np.cos(theta1/2)*np.exp(phi2*1.0j)*np.sin(theta2/2)
-    GS_c = np.exp(phi1*1.0j)*np.sin(theta1/2)*np.cos(theta2/2)
-    GS_d = np.exp((phi1+phi2)*1.0j)*np.sin(theta1/2)*np.sin(theta2/2)
-    GS_vec = np.array([[GS_a,GS_b,GS_c,GS_d]])
-    
-    # Spin exp. values 
-    S1 = system.compute_spin_exp_value(GS_vec,0)
-    S2 = system.compute_spin_exp_value(GS_vec,1)
-    
-    # Spin as given by Bloch representation of the single spin states
-    S1_exp = np.array([0.5*np.sin(theta1)*np.cos(phi1),0.5*np.sin(theta1)*np.sin(phi1),0.5*np.cos(theta1)])
-    S2_exp = np.array([0.5*np.sin(theta2)*np.cos(phi2),0.5*np.sin(theta2)*np.sin(phi2),0.5*np.cos(theta2)])
-    
-    assert np.linalg.norm(S1-S1_exp)<1e-10
-    assert np.linalg.norm(S2-S2_exp)<1e-10
-
-def test_compute_magnetization_0() -> None :
-    '''
-    Tests that the method in question allows a correct estimation of the magnetization vector
-    when the ground state (GS) consists of two parallel spins aligned to the z axis. 
-    '''
-    # Structural properties of the system
-    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
-    spin = 0.5
-    system = SpinSystem(latt_vecs,sites,spin)
-    
-    # GS definition
-    GS_vec = np.array([[1.0,0.0,0.0,0.0]])
-    
-    # Magnetization vs Expectation
-    M_vec = system.compute_magnetization(GS_vec)
-    M_exp = np.array([0.0,0.0,0.5])
-    
-    assert np.linalg.norm(M_vec-M_exp)==0.0
-
-def test_compute_magnetization_1() -> None :
-    '''
-    Tests that the method in question allows a correct estimation of the magnetization vector
-    when the ground state (GS) consists of two parallel spins aligned to the z axis.
-    Also checks whether the choice of the spin quntum number affects the correctness.
-    '''
-    # Structural properties of the system
-    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
-    spin = 1.0
-    system = SpinSystem(latt_vecs,sites,spin)
-    
-    # GS definition
-    GS_vec = np.array([[1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]])
-    
-    # Magnetization vs Expectation
-    M_vec = system.compute_magnetization(GS_vec)
-    M_exp = np.array([0.0,0.0,1.0])
-    
-    assert np.linalg.norm(M_vec-M_exp)==0.0
-
-def test_compute_magnetization_2() -> None :
-    '''
-    Tests that the method in question allows a correct estimation of the spin expectation values
-    when the ground state (GS) consists of two anti-parallel spins aligned to the z axis. 
-    '''
-    # Structural properties of the system
-    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
-    spin = 0.5
-    system = SpinSystem(latt_vecs,sites,spin)
-    
-    # GS definition
-    GS_vec = np.array([[0.0,1.0,0.0,0.0]]) 
-    
-    # Magnetization vs Expectation
-    M_vec = system.compute_magnetization(GS_vec)
-    M_exp = np.zeros(3)
-    
-    assert np.linalg.norm(M_vec-M_exp)==0.0
+#def test_compute_spin_correlation_1() -> None :
+#    '''
+#    Tests that the method in question allows a correct estimation of the spin-spin correlation matrix
+#    when the ground state (GS) consists of two perpendicular spins aligned to the z and y axes, respectively.
+#    '''
+#    # Structural properties of the system
+#    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+#    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+#    spin = 0.5
+#    system = SpinSystem(latt_vecs,sites,spin)
+#    
+#    # GS definition
+#    GS_vec = (1/np.sqrt(2))*np.array([1.0,1.0j,0.0,0.0])
+#
+#    # Spin-spin Correlation matrix vs Expectation
+#    SS_mat = system.compute_spin_correlation(GS_vec,0,1)
+#    SS_exp = np.array([[0.0,0.0,0.0],
+#                       [0.0,0.0,0.0],
+#                       [0.0,0.25,0.0]])
+#    
+#    assert np.linalg.norm(SS_mat-SS_exp)<1e-10
+#
+#def test_compute_spin_correlation_2() -> None :
+#    '''
+#    Tests that the method in question allows a correct estimation of the spin-spin correlation matrix
+#    when the ground state (GS) consists of two perpendicular spins aligned to the z and y axes, respectively.
+#    '''
+#    # Structural properties of the system
+#    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+#    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+#    spin = 0.5
+#    system = SpinSystem(latt_vecs,sites,spin)
+#    
+#    # GS definition
+#    GS_vec = (1/np.sqrt(2))*np.array([1.0,0.0,0.0,1.0])
+#
+#    # Spin-spin Correlation matrix vs Expectation
+#    SS_mat = system.compute_spin_correlation(GS_vec,0,1)
+#    SS_exp = np.array([[0.25,0.0,0.0],
+#                       [0.0,-0.25,0.0],
+#                       [0.0,0.0,0.25]])
+#    
+#    assert np.linalg.norm(SS_mat-SS_exp)<1e-10
+#
+#def test_GS_ambiguity() -> None :
+#    # Structural properties of the system
+#    latt_vecs = np.array([[4.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+#    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0],[3.0,0.0,0.0]])
+#    spin = 0.5
+#    system = SpinSystem(latt_vecs,sites,spin)
+#    
+#    # GS definition
+#    Sxs = []
+#    Sys = []
+#    Szs = []
+#    for l in range(10) :
+#        for m in [2] :#range(10) :
+#            GS_vec = np.array([0.0,0.0,0.0,0.0,0.0,np.sqrt(0.1*l)*np.exp(1.0j*(0.2*np.pi*m)),0.0,0.0,0.0,0.0,np.sqrt(1.0-0.1*l),0.0,0.0,0.0,0.0,0.0])
+#            GS_vec = GS_vec / np.linalg.norm(GS_vec)
+#
+#            S1 = system.compute_spin_exp_value(GS_vec,0)
+#            Sxs.append(S1[0])
+#            Sys.append(S1[1])
+#            Szs.append(S1[2])
+#            S2 = system.compute_spin_exp_value(GS_vec,1)
+#            Sxs.append(S1[0])
+#            Sys.append(S1[1])
+#            Szs.append(S1[2])
+#            S3 = system.compute_spin_exp_value(GS_vec,2)
+#            Sxs.append(S1[0])
+#            Sys.append(S1[1])
+#            Szs.append(S1[2])
+#            S4 = system.compute_spin_exp_value(GS_vec,3)
+#            Sxs.append(S1[0])
+#            Sys.append(S1[1])
+#            Szs.append(S1[2])
+#                    
+#            print(S1,'\n',S2,'\n',S3,'\n',S4)
+#    print('Sxs_norm',np.linalg.norm(np.array(Sxs)))
+#    print('Sys_norm',np.linalg.norm(np.array(Sys)))
+#    print('Szs_norm',np.linalg.norm(np.array(Szs)))
+#
+#test_GS_ambiguity()
