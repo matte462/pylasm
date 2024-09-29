@@ -113,6 +113,8 @@ class InputReader :
         # Raise Exceptions when needed
         if struct_file_name=='NOT SPECIFIED' :
             raise ValueError(f'The struct_file_name value is {struct_file_name} in {self.get_config_file()}.\nSo no structure is actually read.')
+        elif not os.path.exists(struct_file_name) :
+            raise FileNotFoundError(f'No structure file called {struct_file_name} was found.')
         if mag_ion=='NOT SPECIFIED' :
             raise ValueError(f'The mag_ion value is {mag_ion} in {self.get_config_file()}.\nSo no structure is actually read.')
         # Symbols for the elements do not contain more than 2 characters
