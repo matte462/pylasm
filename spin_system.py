@@ -253,6 +253,8 @@ class SpinSystem() :
             n_dim (int): Number of spatial dimensions of the spin system under study;
             tol_imag (float): Tolerance on the imaginary part of Hamiltonian matrix elements.
         '''
+        print('\nThe spin Hamiltonian is being defined...')
+        
         Nspins = self.get_Nspins()
         spin_mult = self.get_spin_mult()
         S_vec = self.build_spin_operator()
@@ -290,6 +292,7 @@ class SpinSystem() :
         
         if not ishermitian(H,atol=tol_imag) :
             raise ValueError('The Spin Hamiltonian matrix is not Hermitian.')
+        print('The spin Hamiltonian is finally computed.')
         
         return H
     
@@ -438,7 +441,7 @@ class SpinSystem() :
         
         return spin_corr_xs, spin_corr_ys, spin_corr_zs, spin_corr_vals
 
-    def compute_magnetization(self,states: 'np.ndarray',GS_deg: int,magn_output_mode: str) -> 'np.ndarray' :
+    def compute_magnetization(self,states: 'np.ndarray',GS_deg: int,magn_output_mode: str) -> float :
         '''
         Returns the magnetization modulus of the composite spin system as proportional to the expectation value of
         the sum of all the spin-spin scalar product operators. The definition of such scalar products depends on the chosen
