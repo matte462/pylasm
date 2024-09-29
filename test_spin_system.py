@@ -683,8 +683,9 @@ def test_compute_pair_interaction_3() -> None :
 
 def test_compute_spin_correlation_0() -> None :
     '''
-    Tests that the method in question allows a correct estimation of the spin-spin correlation value
-    when the ground state (GS) is non-degenerate and consists of four parallel spins aligned to the z axis. 
+    Tests that the method in question allows a correct estimation of the spin-spin correlation values
+    when the ground state (GS) is non-degenerate and consists of four parallel spins aligned to the z axis,
+    according to Bloch representation of spin-1/2 states. 
     '''
     # Structural properties of the system
     latt_vecs = np.array([[4.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
@@ -695,96 +696,162 @@ def test_compute_spin_correlation_0() -> None :
     # GS definition
     GS_vec = np.array([[1.0*(i==0) for i in range(16)]]).T
     
-    # Spin-spin Correlation value vs Expectation
+    # Spin-spin Correlation values vs Expectations
     SS_val = system.compute_spin_correlation(GS_vec,1,0,1)
     SS_exp = np.array([0.0,0.0,0.25])
     assert np.linalg.norm(SS_val-SS_exp)<1e-10
+    
+    # Spin-spin Correlation value vs Expectation
+    SS_val = system.compute_spin_correlation(GS_vec,1,0,2)
+    SS_exp = np.array([0.0,0.0,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
+    
+    # Spin-spin Correlation values vs Expectations
+    SS_val = system.compute_spin_correlation(GS_vec,1,1,1)
+    SS_exp = np.array([0.25,0.25,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
+
+def test_compute_spin_correlation_1() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin-spin correlation values
+    when the ground state (GS) is doubly-degenerate and consists of four parallel spins aligned to the z axis,
+    according to Bloch representation of spin-1/2 states.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[4.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0],[3.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = np.array([[1.0*(i==0) for i in range(16)],
+                       [1.0*(i==15) for i in range(16)]]).T
+    
+    # Spin-spin Correlation value vs Expectation
+    SS_val = system.compute_spin_correlation(GS_vec,2,0,1)
+    SS_exp = np.array([0.0,0.0,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
+    
+    # Spin-spin Correlation value vs Expectation
+    SS_val = system.compute_spin_correlation(GS_vec,2,0,2)
+    SS_exp = np.array([0.0,0.0,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
+    
+    # Spin-spin Correlation value vs Expectation
+    SS_val = system.compute_spin_correlation(GS_vec,2,1,1)
+    SS_exp = np.array([0.25,0.25,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
+
+def test_compute_spin_correlation_2() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin-spin correlation values
+    when the ground state (GS) is non-degenerate and consists of four anti-parallel spins aligned to the z axis,
+    according to Bloch representation of spin-1/2 states. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[4.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0],[3.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = np.array([[1.0*(i==10) for i in range(16)]]).T
+    
+    # Spin-spin Correlation values vs Expectations
+    SS_val = system.compute_spin_correlation(GS_vec,1,0,1)
+    SS_exp = np.array([0.0,0.0,-0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
+    
+    # Spin-spin Correlation value vs Expectation
+    SS_val = system.compute_spin_correlation(GS_vec,1,0,2)
+    SS_exp = np.array([0.0,0.0,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
+    
+    # Spin-spin Correlation values vs Expectations
+    SS_val = system.compute_spin_correlation(GS_vec,1,1,1)
+    SS_exp = np.array([0.25,0.25,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
+
+def test_compute_spin_correlation_3() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin-spin correlation values
+    when the ground state (GS) is doubly-degenerate and consists of four parallel spins aligned to the z axis,
+    according to Bloch representation of spin-1/2 states.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[4.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0],[3.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = np.array([[1.0*(i==5) for i in range(16)],
+                       [1.0*(i==10) for i in range(16)]]).T
+    
+    # Spin-spin Correlation value vs Expectation
+    SS_val = system.compute_spin_correlation(GS_vec,2,0,1)
+    SS_exp = np.array([0.0,0.0,-0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
+    
+    # Spin-spin Correlation value vs Expectation
+    SS_val = system.compute_spin_correlation(GS_vec,2,0,2)
+    SS_exp = np.array([0.0,0.0,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
+    
+    # Spin-spin Correlation value vs Expectation
+    SS_val = system.compute_spin_correlation(GS_vec,2,1,1)
+    SS_exp = np.array([0.25,0.25,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
+    
+def test_compute_spin_correlation_4() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin-spin correlation values
+    when the ground state (GS) is non-degenerate and consists of two perpendicular spins,
+    according to Bloch representation of spin-1/2 states.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = (1/np.sqrt(2))*np.array([[1.0,1.0j,0.0,0.0]]).T
+
+    # Spin-spin Correlation matrix vs Expectation
+    SS_mat = system.compute_spin_correlation(GS_vec,1,0,1)
+    SS_exp = np.array([[0.0,0.0,0.0]])
+    assert np.linalg.norm(SS_mat-SS_exp)<1e-10
     
     # Spin-spin Correlation value vs Expectation
     SS_val = system.compute_spin_correlation(GS_vec,1,1,1)
     SS_exp = np.array([0.25,0.25,0.25])
     assert np.linalg.norm(SS_val-SS_exp)<1e-10
 
-#def test_compute_spin_correlation_1() -> None :
-#    '''
-#    Tests that the method in question allows a correct estimation of the spin-spin correlation matrix
-#    when the ground state (GS) consists of two perpendicular spins aligned to the z and y axes, respectively.
-#    '''
-#    # Structural properties of the system
-#    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-#    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
-#    spin = 0.5
-#    system = SpinSystem(latt_vecs,sites,spin)
-#    
-#    # GS definition
-#    GS_vec = (1/np.sqrt(2))*np.array([1.0,1.0j,0.0,0.0])
-#
-#    # Spin-spin Correlation matrix vs Expectation
-#    SS_mat = system.compute_spin_correlation(GS_vec,0,1)
-#    SS_exp = np.array([[0.0,0.0,0.0],
-#                       [0.0,0.0,0.0],
-#                       [0.0,0.25,0.0]])
-#    
-#    assert np.linalg.norm(SS_mat-SS_exp)<1e-10
-#
-#def test_compute_spin_correlation_2() -> None :
-#    '''
-#    Tests that the method in question allows a correct estimation of the spin-spin correlation matrix
-#    when the ground state (GS) consists of two perpendicular spins aligned to the z and y axes, respectively.
-#    '''
-#    # Structural properties of the system
-#    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-#    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
-#    spin = 0.5
-#    system = SpinSystem(latt_vecs,sites,spin)
-#    
-#    # GS definition
-#    GS_vec = (1/np.sqrt(2))*np.array([1.0,0.0,0.0,1.0])
-#
-#    # Spin-spin Correlation matrix vs Expectation
-#    SS_mat = system.compute_spin_correlation(GS_vec,0,1)
-#    SS_exp = np.array([[0.25,0.0,0.0],
-#                       [0.0,-0.25,0.0],
-#                       [0.0,0.0,0.25]])
-#    
-#    assert np.linalg.norm(SS_mat-SS_exp)<1e-10
-#
-#def test_GS_ambiguity() -> None :
-#    # Structural properties of the system
-#    latt_vecs = np.array([[4.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
-#    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0],[3.0,0.0,0.0]])
-#    spin = 0.5
-#    system = SpinSystem(latt_vecs,sites,spin)
-#    
-#    # GS definition
-#    Sxs = []
-#    Sys = []
-#    Szs = []
-#    for l in range(10) :
-#        for m in [2] :#range(10) :
-#            GS_vec = np.array([0.0,0.0,0.0,0.0,0.0,np.sqrt(0.1*l)*np.exp(1.0j*(0.2*np.pi*m)),0.0,0.0,0.0,0.0,np.sqrt(1.0-0.1*l),0.0,0.0,0.0,0.0,0.0])
-#            GS_vec = GS_vec / np.linalg.norm(GS_vec)
-#
-#            S1 = system.compute_spin_exp_value(GS_vec,0)
-#            Sxs.append(S1[0])
-#            Sys.append(S1[1])
-#            Szs.append(S1[2])
-#            S2 = system.compute_spin_exp_value(GS_vec,1)
-#            Sxs.append(S1[0])
-#            Sys.append(S1[1])
-#            Szs.append(S1[2])
-#            S3 = system.compute_spin_exp_value(GS_vec,2)
-#            Sxs.append(S1[0])
-#            Sys.append(S1[1])
-#            Szs.append(S1[2])
-#            S4 = system.compute_spin_exp_value(GS_vec,3)
-#            Sxs.append(S1[0])
-#            Sys.append(S1[1])
-#            Szs.append(S1[2])
-#                    
-#            print(S1,'\n',S2,'\n',S3,'\n',S4)
-#    print('Sxs_norm',np.linalg.norm(np.array(Sxs)))
-#    print('Sys_norm',np.linalg.norm(np.array(Sys)))
-#    print('Szs_norm',np.linalg.norm(np.array(Szs)))
-#
-#test_GS_ambiguity()
+def test_compute_spin_correlation_5() -> None :
+    '''
+    Tests that the method in question allows a correct estimation of the spin-spin correlation values
+    when the ground state (GS) is 4-fold-degenerate and consists of two perpendicular spins,
+    according to Bloch representation of spin-1/2 states.
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = (1/np.sqrt(2))*np.array([[1.0,1.0j,0.0,0.0],
+                                      [1.0,-1.0j,0.0,0.0],
+                                      [0.0,0.0,1.0,1.0j],
+                                      [0.0,0.0,1.0,-1.0j]]).T
+
+    # Spin-spin Correlation matrix vs Expectation
+    SS_mat = system.compute_spin_correlation(GS_vec,4,0,1)
+    SS_exp = np.array([[0.0,0.0,0.0]])
+    assert np.linalg.norm(SS_mat-SS_exp)<1e-10
+    
+    # Spin-spin Correlation value vs Expectation
+    SS_val = system.compute_spin_correlation(GS_vec,4,1,1)
+    SS_exp = np.array([0.25,0.25,0.25])
+    assert np.linalg.norm(SS_val-SS_exp)<1e-10
