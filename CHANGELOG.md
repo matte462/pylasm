@@ -1,3 +1,21 @@
+2024-09-29 Matteo Costa <mattecosta48@gmail.com>
+
+    * global_functions.py (log_exception): I have added a function to allow the message of the eventually raised Exceptions to be written into the report file named SPIN_REPORT.txt.
+
+    * global_functions.py (print_logo): Since the print statements are directed towards SPIN_REPORT.txt, the ANSI escape codes are now useless. So they are removed.
+
+    * global_functions.py (save_data): All the relevant data (i.e. Lanczos energies, spin-spin correlation values, magnetization) are now saved into a well-structured JSON file named SPIN_OUT.json, in case the results are needed for later use.
+
+    * global_functions.py (map_spin_correlations & plot_data): These functions provide the user with a plot of the just calculated spin-spin correlation values as a function of the intersite distance. This task requires to map the spin pair of interest with the associated NN shell, which is carried out by exploiting the previously defined SpinSystem.find_NN_shell method.
+
+    * input_reader.py (read_struct_file): The method did not cover the case in which there is no structure file with the specified string. Now the code raises an Exception if that occurs.
+
+    * test_spin_system.py (test_spin_correlation_*): I have now re-introduced the old testing functions for the SpinSystem.compute_spin_correlation method with all the appropriate modifications due to the recent changes. The functions investigate whether the method behaves correctly in some limit cases. Namely, they include: different GS degeneracies, distinct spin configurations and on-site/adjacent-sites/non-adjacent-sites correlation values.
+
+    * main.py: The import statement for the functions defined within global_functions.py is now explicit. I have also used the sys module to direct the stdout and stderr streams into the report file named SPIN_REPORT.txt.
+
+    * Scripts/exec_single_run.py: This new python script is meant to be copied and pasted into the working directory by the user. Once the path to main.py is fully specified, it allows the user to perform a signle-run Lanczos calculation. A clearer example/tutorial will be included soon.
+
 2024-09-27 Matteo Costa <mattecosta48@gmail.com>
 
     *** MAJOR CHANGES TO THE CODE HAVE BEEN APPLIED ***
