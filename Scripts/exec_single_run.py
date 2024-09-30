@@ -1,10 +1,10 @@
 import os
 
-# Path to the script you want to run
-script_path = r"path/to/PyLasm/main.py"
+# Path to main.py
+main_path = r"full/path/to/PyLasm/main.py"
 
-# Execute the script if it actually exists
-if os.path.exists(script_path):
-    os.system(f'python \"{script_path}\"')
+# Execute main.py if it actually exists
+if os.path.exists(main_path):
+    os.system(f'python \"{main_path}\"')
 else:
-    raise FileNotFoundError(f"The script at {script_path} does not exist.")
+    raise FileNotFoundError(f"The script at {main_path} does not exist.")
