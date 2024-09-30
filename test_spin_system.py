@@ -775,7 +775,7 @@ def test_compute_spin_correlation_2() -> None :
 def test_compute_spin_correlation_3() -> None :
     '''
     Tests that the method in question allows a correct estimation of the spin-spin correlation values
-    when the ground state (GS) is doubly-degenerate and consists of four parallel spins aligned to the z axis,
+    when the ground state (GS) is doubly-degenerate and consists of four anti-parallel spins aligned to the z axis,
     according to Bloch representation of spin-1/2 states.
     '''
     # Structural properties of the system
@@ -855,3 +855,218 @@ def test_compute_spin_correlation_5() -> None :
     SS_val = system.compute_spin_correlation(GS_vec,4,1,1)
     SS_exp = np.array([0.25,0.25,0.25])
     assert np.linalg.norm(SS_val-SS_exp)<1e-10
+
+def test_compute_magnetization_0() -> None :
+    '''
+    Tests that the method correctly estimates the magnetization strength as requested by the user
+    when the ground state (GS) is non-degenerate and consists of four parallel spins aligned to the z axis,
+    according to Bloch representation of spin-1/2 states. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[4.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0],[3.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = np.array([[1.0*(i==0) for i in range(16)]]).T
+    
+    # M_x value vs Expectation
+    M_x = system.compute_magnetization(GS_vec,1,'M_x')
+    M_x_exp = 0.25
+    assert np.abs(M_x-M_x_exp)<1e-10
+    
+    # M_y value vs Expectation
+    M_y = system.compute_magnetization(GS_vec,1,'M_y')
+    M_y_exp = 0.25
+    assert np.abs(M_y-M_y_exp)<1e-10
+    
+    # M_z value vs Expectation
+    M_z = system.compute_magnetization(GS_vec,1,'M_z')
+    M_z_exp = 0.5
+    assert np.abs(M_z-M_z_exp)<1e-10
+    
+    # M_full value vs Expectation
+    M_full = system.compute_magnetization(GS_vec,1,'M_full')
+    M_full_exp = np.sqrt(1.5)/2
+    assert np.abs(M_full-M_full_exp)<1e-10
+
+def test_compute_magnetization_1() -> None :
+    '''
+    Tests that the method correctly estimates the magnetization strength as requested by the user
+    when the ground state (GS) is doubly-degenerate and consists of four parallel spins aligned to the z axis,
+    according to Bloch representation of spin-1/2 states. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[4.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0],[3.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = (1/np.sqrt(2))*np.array([[1.0*(i==0)+1.0*(i==15) for i in range(16)],
+                                      [1.0*(i==0)+1.0*(i==15) for i in range(16)]]).T
+    
+    # M_x value vs Expectation
+    M_x = system.compute_magnetization(GS_vec,2,'M_x')
+    M_x_exp = 0.25
+    assert np.abs(M_x-M_x_exp)<1e-10
+    
+    # M_y value vs Expectation
+    M_y = system.compute_magnetization(GS_vec,2,'M_y')
+    M_y_exp = 0.25
+    assert np.abs(M_y-M_y_exp)<1e-10
+    
+    # M_z value vs Expectation
+    M_z = system.compute_magnetization(GS_vec,2,'M_z')
+    M_z_exp = 0.5
+    assert np.abs(M_z-M_z_exp)<1e-10
+    
+    # M_full value vs Expectation
+    M_full = system.compute_magnetization(GS_vec,2,'M_full')
+    M_full_exp = np.sqrt(1.5)/2
+    assert np.abs(M_full-M_full_exp)<1e-10
+
+def test_compute_magnetization_2() -> None :
+    '''
+    Tests that the method correctly estimates the magnetization strength as requested by the user
+    when the ground state (GS) is non-degenerate and consists of four anti-parallel spins aligned to the z axis,
+    according to Bloch representation of spin-1/2 states. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[4.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0],[3.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = np.array([[1.0*(i==10) for i in range(16)]]).T
+    
+    # M_x value vs Expectation
+    M_x = system.compute_magnetization(GS_vec,1,'M_x')
+    M_x_exp = 0.25
+    assert np.abs(M_x-M_x_exp)<1e-10
+    
+    # M_y value vs Expectation
+    M_y = system.compute_magnetization(GS_vec,1,'M_y')
+    M_y_exp = 0.25
+    assert np.abs(M_y-M_y_exp)<1e-10
+    
+    # M_z value vs Expectation
+    M_z = system.compute_magnetization(GS_vec,1,'M_z')
+    M_z_exp = 0.0
+    assert np.abs(M_z-M_z_exp)<1e-10
+    
+    # M_full value vs Expectation
+    M_full = system.compute_magnetization(GS_vec,1,'M_full')
+    M_full_exp = 0.5/np.sqrt(2)
+    assert np.abs(M_full-M_full_exp)<1e-10
+
+def test_compute_magnetization_3() -> None :
+    '''
+    Tests that the method correctly estimates the magnetization strength as requested by the user
+    when the ground state (GS) is doubly-degenerate and consists of four anti-parallel spins aligned to the z axis,
+    according to Bloch representation of spin-1/2 states. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[4.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0],[2.0,0.0,0.0],[3.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = (1/np.sqrt(2))*np.array([[1.0*(i==5)+1.0*(i==10) for i in range(16)],
+                                      [1.0*(i==5)-1.0*(i==10) for i in range(16)]]).T
+    
+    # M_x value vs Expectation
+    M_x = system.compute_magnetization(GS_vec,2,'M_x')
+    M_x_exp = 0.25
+    assert np.abs(M_x-M_x_exp)<1e-10
+    
+    # M_y value vs Expectation
+    M_y = system.compute_magnetization(GS_vec,2,'M_y')
+    M_y_exp = 0.25
+    assert np.abs(M_y-M_y_exp)<1e-10
+    
+    # M_z value vs Expectation
+    M_z = system.compute_magnetization(GS_vec,2,'M_z')
+    M_z_exp = 0.0
+    assert np.abs(M_z-M_z_exp)<1e-10
+    
+    # M_full value vs Expectation
+    M_full = system.compute_magnetization(GS_vec,2,'M_full')
+    M_full_exp = 0.5/np.sqrt(2)
+    assert np.abs(M_full-M_full_exp)<1e-10
+
+def test_compute_magnetization_4() -> None :
+    '''
+    Tests that the method correctly estimates the magnetization strength as requested by the user
+    when the ground state (GS) is non-degenerate and consists of two perpendicular spins,
+    according to Bloch representation of spin-1/2 states. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = (1/np.sqrt(2))*np.array([[1.0,1.0j,0.0,0.0]]).T
+    
+    # M_x value vs Expectation
+    M_x = system.compute_magnetization(GS_vec,1,'M_x')
+    M_x_exp = 1/np.sqrt(8)
+    assert np.abs(M_x-M_x_exp)<1e-10
+    
+    # M_y value vs Expectation
+    M_y = system.compute_magnetization(GS_vec,1,'M_y')
+    M_y_exp = 1/np.sqrt(8)
+    assert np.abs(M_y-M_y_exp)<1e-10
+    
+    # M_z value vs Expectation
+    M_z = system.compute_magnetization(GS_vec,1,'M_z')
+    M_z_exp = 1/np.sqrt(8)
+    assert np.abs(M_z-M_z_exp)<1e-10
+    
+    # M_full value vs Expectation
+    M_full = system.compute_magnetization(GS_vec,1,'M_full')
+    M_full_exp = np.sqrt(1.5)/2
+    assert np.abs(M_full-M_full_exp)<1e-10
+
+def test_compute_magnetization_5() -> None :
+    '''
+    Tests that the method correctly estimates the magnetization strength as requested by the user
+    when the ground state (GS) is 4-fold-degenerate and consists of two perpendicular spins,
+    according to Bloch representation of spin-1/2 states. 
+    '''
+    # Structural properties of the system
+    latt_vecs = np.array([[2.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[1.0,0.0,0.0]])
+    spin = 0.5
+    system = SpinSystem(latt_vecs,sites,spin)
+    
+    # GS definition
+    GS_vec = (1/np.sqrt(2))*np.array([[1.0,1.0j,0.0,0.0],
+                                      [1.0,-1.0j,0.0,0.0],
+                                      [0.0,0.0,1.0,1.0j],
+                                      [0.0,0.0,1.0,-1.0j]]).T
+    
+    # M_x value vs Expectation
+    M_x = system.compute_magnetization(GS_vec,4,'M_x')
+    M_x_exp = 1/np.sqrt(8)
+    assert np.abs(M_x-M_x_exp)<1e-10
+    
+    # M_y value vs Expectation
+    M_y = system.compute_magnetization(GS_vec,4,'M_y')
+    M_y_exp = 1/np.sqrt(8)
+    assert np.abs(M_y-M_y_exp)<1e-10
+    
+    # M_z value vs Expectation
+    M_z = system.compute_magnetization(GS_vec,4,'M_z')
+    M_z_exp = 1/np.sqrt(8)
+    assert np.abs(M_z-M_z_exp)<1e-10
+    
+    # M_full value vs Expectation
+    M_full = system.compute_magnetization(GS_vec,4,'M_full')
+    M_full_exp = np.sqrt(1.5)/2
+    assert np.abs(M_full-M_full_exp)<1e-10
