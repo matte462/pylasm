@@ -40,7 +40,7 @@ class InputReader :
         # Define permitted keys per each section and the reference dictionary
         struct_dict = {'struct_file_name': str,'struct_file_type': str,'mag_ion': str,'spin': float,'n_dim': int}
         ham_dict = {'J_couplings_file': str,'max_NN_shell': int,'shell_digits': int,'B_field': list,'tol_imag': float}
-        out_dict = {'n_excited': int,'lanczos_digits': int,'magn_output_mode': str}
+        out_dict = {'n_excited': int,'lanczos_digits': int,'magn_output_mode': str,'show_plot': bool}
         ref_dict = {'STRUCTURE': struct_dict,'HAMILTONIAN': ham_dict,'OUTPUT': out_dict}
         
         # Define the default configuration
@@ -48,7 +48,7 @@ class InputReader :
         default_config.optionxform = str # Keys are case-sensitive
         default_config['STRUCTURE'] = {'struct_file_name': "'NOT SPECIFIED'",'struct_file_type': "'POSCAR'",'mag_ion': "'NOT SPECIFIED'",'spin': "0.5",'n_dim': "1"}
         default_config['HAMILTONIAN'] = {'J_couplings_file': "'NOT SPECIFIED'",'max_NN_shell': "1",'shell_digits': "3",'B_field': "[0.0,0.0,0.0]",'tol_imag': "1e-6"}
-        default_config['OUTPUT'] = {'n_excited': "0",'lanczos_digits': "10",'magn_output_mode': "'M_z'"}
+        default_config['OUTPUT'] = {'n_excited': "0",'lanczos_digits': "10",'magn_output_mode': "'M_z'",'show_plot': "True"}
     
         # Initialize the effective configuration
         config = configparser.ConfigParser()
@@ -532,6 +532,12 @@ class InputReader :
         affects how the spin-spin correlation values will be determined.
         '''
         return self.config_info['OUTPUT']['magn_output_mode']
+    
+    def get_show_plot(self) -> bool :
+        '''
+        Returns True if the plot (spin-spin correlation vs distance) is requested by the user, False otherwise.
+        '''
+        return self.config_info['OUTPUT']['show_plot']
     
     def get_lattice_vectors(self) -> 'np.ndarray' :
         '''

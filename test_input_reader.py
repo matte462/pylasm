@@ -13,7 +13,7 @@ def test_read_config_file_0() -> None :
     default_settings = {}
     default_settings['STRUCTURE'] = {'struct_file_name': 'NOT SPECIFIED','struct_file_type': 'POSCAR','mag_ion': 'NOT SPECIFIED','spin': 0.5,'n_dim': 1}
     default_settings['HAMILTONIAN'] = {'J_couplings_file': 'NOT SPECIFIED','max_NN_shell': 1,'shell_digits': 3,'B_field': [0.0,0.0,0.0],'tol_imag': 1e-6}
-    default_settings['OUTPUT'] = {'n_excited': 0,'lanczos_digits': 10,'magn_output_mode': 'M_z'}
+    default_settings['OUTPUT'] = {'n_excited': 0,'lanczos_digits': 10,'magn_output_mode': 'M_z','show_plot': True}
 
     # Effective configuration to be tested
     reader = InputReader('./Inputs/TestFiles/config_file_3.ini')
@@ -100,7 +100,8 @@ def test_read_config_file_7() -> None :
     exp_settings['OUTPUT'] = {
         'n_excited': 2,
         'lanczos_digits': 8,
-        'magn_output_mode': 'M_full'
+        'magn_output_mode': 'M_full',
+        'show_plot': False
     }
 
     assert read_settings==exp_settings

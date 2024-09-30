@@ -44,8 +44,10 @@ def main() :
         magnetization = system.compute_magnetization(states,GS_deg,magn_output_mode)
         
         # Save and plot all the relevant data
+        show_plot = reader.get_show_plot()
         save_data(energies,spin_correlations,magnetization)
-        plot_data(system,spin_correlations,magnetization,shell_digits,n_dim)
+        if show_plot :
+            plot_data(system,spin_correlations,magnetization,shell_digits,n_dim)
 
 if __name__ == '__main__':
     main()
