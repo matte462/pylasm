@@ -113,7 +113,7 @@ def solve_by_lanczos(hamiltonian: 'np.ndarray',n_excited: int,lanczos_digits: in
         energies = np.round(energies,lanczos_digits)
         
         # Increment the number of estimated excited states
-        if np.abs(energies[n-1]-energies[n-2])!=0.0 :
+        if np.abs(energies[-1]-energies[-2])!=0.0 :
             excited_count += 1
             
             # Save the ground-state degeneracy
@@ -243,7 +243,7 @@ def plot_data(system: SpinSystem,spin_correlations: tuple,magnetization: float,s
     # Just some final aesthetics and save
     plt.grid(linestyle='--',linewidth=0.5)
     plt.fill_between(distances,spin_corr_data[3],color='gray',alpha=0.3)
-    plt.legend(loc='lower right')
+    plt.legend(loc='best')
     plt.savefig('SPIN_CORRS.png')
     print('All the relevant data is finally plotted.')
     plt.show()
