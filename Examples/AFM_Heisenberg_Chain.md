@@ -147,7 +147,7 @@ In conclusion, find the numerical results within the **SPIN_OUT.json** output fi
 
 Also, compare the so obtained **SPIN_CORRS.png** with the following figure
 
-![alt text](https://github.com/matte462/pylasm/Examples/Figures/AFM_Heisenberg_Chain_Single-run_SPIN_CORRS.png)
+![alt text](./Figures/AFM_Heisenberg_Chain_Single-run_SPIN_CORRS.png)
 
 ## Dependence on the (diagonal) anisotropic exchange interactions
 
@@ -198,7 +198,7 @@ SSC_type = 'Z components'
 
 Once all the Pylasm calculations within the sub-directories run_* are finished, find the output plots under the name of **M_vs_Jpar.png** and **SSC_vs_Jpar.png**, which respectively show how the magnetization and the chosen spin-spin correlation function is affected by the variation of the exchange anisotropy parameter Delta.
 
-![alt text](https://github.com/matte462/pylasm/Examples/Figures/AFM_Heisenberg_Chain_Multiple-J-runs_M_vs_Jpar.png)
-![alt text](https://github.com/matte462/pylasm/Examples/Figures/AFM_Heisenberg_Chain_Multiple-J-runs_SSC_vs_Jpar.png)
+![alt text](./Figures/AFM_Heisenberg_Chain_Multiple-J-runs_M_vs_Jpar.png)
+![alt text](./Figures/AFM_Heisenberg_Chain_Multiple-J-runs_SSC_vs_Jpar.png)
 
 Finally, if the just performed PyLasm single-runs are no longer useful to the user, reduce the memory space occupied by the subdirectories by removing all the files they contain apart from SPIN_OUT.json and SPIN_REPORT.txt. This can be easily achieved by running the python script **clean_directory.py** (find it in the Scripts of the PyLasm installation folder) within the working directory.

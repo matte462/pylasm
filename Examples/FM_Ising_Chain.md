@@ -131,7 +131,7 @@ In conclusion, find the numerical results within the **SPIN_OUT.json** output fi
 
 Also, compare the so obtained **SPIN_CORRS.png** with the following figure
 
-![alt text](https://github.com/matte462/pylasm/Examples/Figures/FM_Ising_Chain_Single-run_SPIN_CORRS.png)
+![alt text](./Figures/FM_Ising_Chain_Single-run_SPIN_CORRS.png)
 
 ## Dependence on the external magnetic field
 
@@ -160,7 +160,7 @@ SSC_type = 'Z components'
 
 Once all the Pylasm calculations within the sub-directories run_* are finished, find the output plots under the name of **M_vs_Bfield.png** and **SSC_vs_Bfield.png**, which respectively show how the magnetization and the chosen spin-spin correlation function is affected by the variation of the external magnetic field.
 
-![alt text](https://github.com/matte462/pylasm/Examples/Figures/FM_Ising_Chain_Multiple-B-runs_M_vs_Bfield.png)
-![alt text](https://github.com/matte462/pylasm/Examples/Figures/FM_Ising_Chain_Multiple-B-runs_SSC_vs_Bfield.png)
+![alt text](./Figures/FM_Ising_Chain_Multiple-B-runs_M_vs_Bfield.png)
+![alt text](./Figures/FM_Ising_Chain_Multiple-B-runs_SSC_vs_Bfield.png)
 
 Finally, if the just performed PyLasm single-runs are no longer useful to the user, reduce the memory space occupied by the subdirectories by removing all the files they contain apart from SPIN_OUT.json and SPIN_REPORT.txt. This can be easily achieved by running the python script **clean_directory.py** (find it in the Scripts of the PyLasm installation folder) within the working directory.
