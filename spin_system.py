@@ -31,24 +31,6 @@ class SpinSystem() :
         self.spin = spin
 
     # Getters methods
-    def get_latt_vecs(self) -> 'np.ndarray' :
-        '''
-        Returns the lattice vectors.
-        '''
-        return self.latt_vecs
-
-    def get_sites(self) -> 'np.ndarray':
-        '''
-        Returns the atomic positions within the Carthesian coordinate system.
-        '''
-        return self.sites
-    
-    def get_spin(self) -> float :
-        '''
-        Returns the spin quantum number.
-        '''
-        return self.spin
-    
     def get_Nspins(self) -> int :
         '''
         Returns the total number of spins in the unit cell.
@@ -60,45 +42,6 @@ class SpinSystem() :
         Returns the spin multiplicity: the dimension of the 1-spin Hilbert space.
         '''
         return int(2*self.spin+1)
-    
-    # Setters methods
-    def set_latt_vecs(self,new_latt_vecs: 'np.ndarray') -> None :
-        '''
-        Sets a new set of 3 lattice vectors, if the old one needs to be changed.
-
-        Args:
-            new_latt_vecs (np.ndarray): New set of 3 lattice vectors.
-        '''
-        self.latt_vecs = new_latt_vecs
-
-    def set_sites(self,new_sites: 'np.ndarray') -> None :
-        '''
-        Sets a new set of atomic positions, if the old one needs to be changed.
-
-        Args:
-            new_sites (np.ndarray): New set of atomic positions.
-        '''
-        self.sites = new_sites
-
-    def set_spin(self,new_spin: float) -> None :
-        '''
-        Sets a new value for the spin quantum number.
-
-        Args:
-            new_spin (float): New spin quantum number.
-        '''
-        self.spin = new_spin
-
-    def set_ith_site(self,new_ith_site: 'np.ndarray',i: int) -> None :
-        '''
-        Changes the i-th spin position to a new one.
-
-        Args:
-            new_ith_site (np.ndarray): New atomic position for the i-th spin;
-            i (int): The index of the spin, whose position needs to be changed,
-                     consistently to the previously defined spin system.
-        '''
-        self.sites[i] = new_ith_site
 
     def find_NN_shell(
             self,

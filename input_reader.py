@@ -461,30 +461,6 @@ class InputReader :
             self.Js_info = Js_info
 
     # Getters methods
-    def get_config_file(self) -> str :
-        '''
-        Returns the name of the configuration file.
-        '''
-        return self.config_file
-
-    def get_config_info(self) -> dict :
-        '''
-        Returns all the information read from the configuration file as a dictionary.
-        '''
-        return self.config_info
-    
-    def get_struct_info(self) -> dict :
-        '''
-        Returns lattice vectors and sites read from the structure file as a dictionary.
-        '''
-        return self.struct_info
-    
-    def get_Js_info(self) -> dict :
-        '''
-        Returns all the interaction matrices read from the MagInt output file as a dictionary.
-        '''
-        return self.Js_info
-
     def get_struct_file_name(self) -> str :
         '''
         Returns the name of the structure file.
