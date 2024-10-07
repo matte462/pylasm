@@ -1,5 +1,28 @@
 # <h1 style="text-align: center; font-size: 3em;">Changelog</h1>
 
+## 2024-10-07 Matteo Costa <mattecosta48@gmail.com>
+
+- ### README.md:
+> The link to the folder Examples should now work in both the local and remote Git-hub repository.
+
+- ### global_functions.py:
+> The typing annotations and the parameters' layout are now improved for an optimal readability. In particular, I choose to list a parameter per line when the function requires more then 3 entries.
+
+- ### input_reader.py:
+> As for global_functions.py, I have decided to improve the typing annotations and the parameters' layout in order to facilitate the reading process. But I have also removed all the setters and those getters methods which allowed to access the attributes of the InputReader instance. Now, they are directly accessed by the dot operator.
+
+- ### main.py:
+> Improving the parameters' layout.
+
+- ### spin_system.py:
+> As in the other files, I have improved the typing annotations and the parameters' layout and I have also removed all the setters and those getters which allowed to access the attributes of the SpinSystem instance. Finally, I have fixed the logics behind the Exception raise statements within the definition of the constructor.
+
+- ### test_global_functions.py & test_input_reader.py:
+> The pytest.raises calls are now placed just before the line of interest for the specific testing function. Moreover, Numpy arrays are compared with each other by means of np.allclose, instead of checking np.linalg.norm(difference)<1e-10. A 1e-10 tolerance is chosen to ensure the equality condition.
+
+- ### test_spin_system.py:
+> In addition to the modifications I have mentioned for the other two testing file, I have also improved the efficiency of the testing functions in reporting failures by simplifying them and by targetting a single quantity per testing function. Unavoidably, the number of lines has increased a lot.
+
 ## 2024-10-02 Matteo Costa <mattecosta48@gmail.com>
 
 - ### README.md:
