@@ -18,20 +18,17 @@ class SpinSystem() :
             sites (np.ndarray): Finite set of atomic positions of the spins in the system;
             spin (float): Spin quantum number.
         '''
-        if latt_vecs.shape[0]==3 :
-            self.latt_vecs = latt_vecs
-        else :
-            raise ValueError(f'{latt_vecs.shape[0]} lattice vectors are given, while 3 are expected.')
-        if sites.shape[0]>1 :
-            self.sites = sites
-        else :
-            raise ValueError(f'Only {sites.shape[0]} site is given, while they should be 2 or more.')
-        
         from global_functions import is_spin_acceptable
-        if is_spin_acceptable(spin) :
-            self.spin = spin
-        else :
+        if latt_vecs.shape[0]!=3 :
+            raise ValueError(f'{latt_vecs.shape[0]} lattice vectors are given, while 3 are expected.')
+        if sites.shape[0]<=1 :
+            raise ValueError(f'Only {sites.shape[0]} site is given, while they should be 2 or more.')
+        if not is_spin_acceptable(spin) :
             raise ValueError(f'{spin} is not a valid spin quantum number. Only integer or half-integer values are accepted.')
+        
+        self.latt_vecs = latt_vecs
+        self.sites = sites
+        self.spin = spin
 
     # Getters methods
     def get_latt_vecs(self) -> 'np.ndarray' :
