@@ -22,7 +22,7 @@
 6. Enjoy the results!
 
 ## Usage
-Examples with an extensive description of the main practical details can be found [here](https://github.com/matte462/pylasm/Examples).
+Examples with an extensive description of the main practical details can be found [here](https://github.com/matte462/pylasm/tree/main/Examples).
 
 ## Contact
 Find more info about the author [here](https://github.com/matte462).
