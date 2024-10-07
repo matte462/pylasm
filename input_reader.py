@@ -11,13 +11,15 @@ class InputReader :
     and provides all the parameters to the user.
     '''
 
-    def __init__(self,config_file: str='init_config.ini') :
+    def __init__(self, config_file: str = 'init_config.ini') :
         '''
         Initializes a new instance of InputReader 
         and directly stores the parameters from the input files 
         into its dict attributes.
         '''
         self.config_file = config_file
+        
+        # Start reading protocol
         self.config_info = {}
         self.struct_info = {}
         self.Js_info = {}
@@ -26,7 +28,7 @@ class InputReader :
         self.read_J_couplings_file()
 
     # Reading methods
-    def read_config_file(self,config_file: str) -> None :
+    def read_config_file(self, config_file: str) -> None :
         '''
         Read the configuration file using the configparser library
         and updates the attribute self.config_info.
@@ -35,20 +37,58 @@ class InputReader :
             config_file (str): The path to the configuration file name to be read.
         '''
         # Define permitted sections
-        allowed_sections = ['STRUCTURE','HAMILTONIAN','OUTPUT']
+        allowed_sections = ['STRUCTURE', 'HAMILTONIAN', 'OUTPUT']
 
         # Define permitted keys per each section and the reference dictionary
-        struct_dict = {'struct_file_name': str,'struct_file_type': str,'mag_ion': str,'spin': float,'n_dim': int}
-        ham_dict = {'J_couplings_file': str,'max_NN_shell': int,'shell_digits': int,'B_field': list,'tol_imag': float}
-        out_dict = {'n_excited': int,'lanczos_digits': int,'magn_output_mode': str,'show_plot': bool}
-        ref_dict = {'STRUCTURE': struct_dict,'HAMILTONIAN': ham_dict,'OUTPUT': out_dict}
+        struct_dict = {
+            'struct_file_name': str,
+            'struct_file_type': str,
+            'mag_ion': str,
+            'spin': float,
+            'n_dim': int
+        }
+        ham_dict = {
+            'J_couplings_file': str,
+            'max_NN_shell': int,
+            'shell_digits': int,
+            'B_field': list,
+            'tol_imag': float
+        }
+        out_dict = {
+            'n_excited': int,
+            'lanczos_digits': int,
+            'magn_output_mode': str,
+            'show_plot': bool
+        }
+        ref_dict = {
+            'STRUCTURE': struct_dict,
+            'HAMILTONIAN': ham_dict,
+            'OUTPUT': out_dict
+        }
         
         # Define the default configuration
         default_config = configparser.ConfigParser()
         default_config.optionxform = str # Keys are case-sensitive
-        default_config['STRUCTURE'] = {'struct_file_name': "'NOT SPECIFIED'",'struct_file_type': "'POSCAR'",'mag_ion': "'NOT SPECIFIED'",'spin': "0.5",'n_dim': "1"}
-        default_config['HAMILTONIAN'] = {'J_couplings_file': "'NOT SPECIFIED'",'max_NN_shell': "1",'shell_digits': "3",'B_field': "[0.0,0.0,0.0]",'tol_imag': "1e-6"}
-        default_config['OUTPUT'] = {'n_excited': "0",'lanczos_digits': "10",'magn_output_mode': "'M_z'",'show_plot': "True"}
+        default_config['STRUCTURE'] = {
+            'struct_file_name': "'NOT SPECIFIED'",
+            'struct_file_type': "'POSCAR'",
+            'mag_ion': "'NOT SPECIFIED'",
+            'spin': "0.5",
+            'n_dim': "1"
+        }
+        default_config['HAMILTONIAN'] = {
+            'J_couplings_file': "'NOT SPECIFIED'",
+            'max_NN_shell': "1",
+            'shell_digits': "3",
+            'B_field': "[0.0,0.0,0.0]",
+            'tol_imag': "1e-6"
+        }
+        default_config['OUTPUT'] = {
+            'n_excited': "0",
+            'lanczos_digits': "10",
+            'magn_output_mode': "'M_z'",
+            'show_plot': "True"
+        }
     
         # Initialize the effective configuration
         config = configparser.ConfigParser()
@@ -112,15 +152,13 @@ class InputReader :
         
         # Raise Exceptions when needed
         if struct_file_name=='NOT SPECIFIED' :
-            raise ValueError(f'The struct_file_name value is {struct_file_name} in {self.get_config_file()}.\nSo no structure is actually read.')
+            raise ValueError(f'The struct_file_name value is {struct_file_name} in {self.config_file}.\nSo no structure is actually read.')
         elif not os.path.exists(struct_file_name) :
             raise FileNotFoundError(f'No structure file called {struct_file_name} was found.')
         if mag_ion=='NOT SPECIFIED' :
-            raise ValueError(f'The mag_ion value is {mag_ion} in {self.get_config_file()}.\nSo no structure is actually read.')
-        # Symbols for the elements do not contain more than 2 characters
-        # The only exceptions to this rule are the heaviest elements, but they are
-        # unlikely to be used in condensed matter physics' applications or studies. 
+            raise ValueError(f'The mag_ion value is {mag_ion} in {self.config_file}.\nSo no structure is actually read.')
         elif len(mag_ion)>2 or len(mag_ion)==0 :
+            # WHY? -> Symbols for the elements most likely do not contain more than 2 characters 
             raise ValueError(f'{mag_ion} does not belong to the periodic table of elements.')
         
         # Select the proper reading function according to the declared structure file type
@@ -138,7 +176,7 @@ class InputReader :
             'mag_ions_pos': mag_ions_pos
         }
 
-    def read_POSCAR(self) -> tuple :
+    def read_POSCAR(self) -> tuple[np.ndarray] :
         '''
         Returns the lattice vectors and the sites of the magnetic ions
         in case the format follows the standard conventions for POSCAR files. 
@@ -157,7 +195,7 @@ class InputReader :
         is_selective = False
 
         # Read the content line-by-line (since POSCAR have a pre-determined structure)
-        with open(struct_file_name,'r') as f :
+        with open(struct_file_name, 'r') as f :
             content = f.readlines()
             if len(content)==0 :
                 raise IOError(f'{struct_file_name} is empty.')
@@ -221,7 +259,7 @@ class InputReader :
                 
                 if k==8 : break
             
-            lattice_vectors = np.multiply(lattice_vectors,scaling)
+            lattice_vectors = np.multiply(lattice_vectors, scaling)
             if elements.count(mag_ion)==0 :
                 raise ValueError(f'No {mag_ion} atoms are found in {struct_file_name}.')
             
@@ -229,19 +267,19 @@ class InputReader :
             # The total number of sites should coincide with the sum of all elements in n_per_element
             # and they are ordered as in the list of elements 
             n_per_element.insert(0,0) # just to properly cycle over the sites
-            starting_row = 8*(is_selective==False)+9*(is_selective==True)
+            starting_row = 8*(is_selective==False) + 9*(is_selective==True)
             for i in range(len(elements)) :
 
                 # If the element of interest does not come first in the list of elements
                 # one should skip all the sites associated with the previous elements
                 n_cumulated = 0
-                for j in range(0,i+1) :
+                for j in range(i+1) :
                     n_cumulated += n_per_element[j]
 
                 # Only the sites of the magnetic ions are stored
                 if mag_ion==elements[i] :
                     mag_ions_pos = np.zeros((n_per_element[i+1],3))
-                    for k in range(starting_row+n_cumulated,starting_row+n_cumulated+n_per_element[i+1]) :
+                    for k in range(starting_row+n_cumulated, starting_row+n_cumulated+n_per_element[i+1]) :
                         if k==len(content) :
                             raise IOError(f'End of {struct_file_name} is reached before all magnetic sites could be read.')
                         vector = clean_line(content[k])
@@ -263,17 +301,17 @@ class InputReader :
             # Cartesian coordinate system is better than Direct one
             # So in case trasform one to the other
             if is_direct==True :
-                mag_ions_pos = np.dot(mag_ions_pos,lattice_vectors)
+                mag_ions_pos = np.dot(mag_ions_pos, lattice_vectors)
             n_per_element.remove(0)
             return lattice_vectors, mag_ions_pos
     
-    def read_STRUCT(self) -> tuple : # STILL TO BE IMPLEMENTED
+    def read_STRUCT(self) -> tuple[np.ndarray] : # STILL TO BE IMPLEMENTED
         pass
     
-    def read_CIF(self) -> tuple : # STILL TO BE IMPLEMENTED
+    def read_CIF(self) -> tuple[np.ndarray] : # STILL TO BE IMPLEMENTED
         pass
     
-    def read_PWI(self) -> tuple : # STILL TO BE IMPLEMENTED
+    def read_PWI(self) -> tuple[np.ndarray] : # STILL TO BE IMPLEMENTED
         pass
 
     def read_J_couplings_file(self) -> None :
@@ -291,14 +329,14 @@ class InputReader :
         
         # Raise Exceptions when needed
         if J_couplings_file=='NOT SPECIFIED' :
-            raise ValueError(f'The J_couplings_file value is {J_couplings_file} in {self.get_config_file()}.\nSo no interaction matrices are actually read.')
+            raise ValueError(f'The J_couplings_file value is {J_couplings_file} in {self.config_file}.\nSo no interaction matrices are actually read.')
 
         Js_info = {}
         magint_matrices = []
         T_vectors = []
         distances = []
         coor_nums = []
-        with open(J_couplings_file,'r') as Vf :
+        with open(J_couplings_file, 'r') as Vf :
             content = Vf.readlines()
             if len(content)==0 :
                 raise IOError(f'{J_couplings_file} is empty.')
@@ -328,7 +366,7 @@ class InputReader :
                         # The n° of interaction matrices in the current NN shell should coincide with the last integer in coor_nums
                         # Otherwise the matrix is filled with zeros
                         for i in range(coor_nums[-1]) :
-                            current_row = k+3+8*i
+                            current_row = k + 3 + 8*i
                             if current_row>len(content)-1 :
                                 raise IOError(f'End of {J_couplings_file} is reached before all T vectors and J matrices could be read.')
                             vector = clean_line(content[current_row])
@@ -386,7 +424,7 @@ class InputReader :
                 
             # Sort T vectors and J matrices in increasing order of distance
             sorted_indices = sorted(range(len(distances)), key=lambda k: distances[k])
-            distances = [round(distances[i],shell_digits) for i in sorted_indices]
+            distances = [np.round(distances[i], shell_digits) for i in sorted_indices]
             T_vectors = [T_vectors[i] for i in sorted_indices]
             magint_matrices = [magint_matrices[i] for i in sorted_indices]
 
@@ -402,13 +440,13 @@ class InputReader :
             # Each NN shell may contain one or more T vectors (& thus J matrices) 
             # as long as they are associated roughly with the same distance
             last_distance = distances[-1]
-            distances.insert(len(distances),last_distance)
-            for j in range(1,len(distances)) :
+            distances.insert(len(distances), last_distance)
+            for j in range(1, len(distances)) :
 
                 # Reset NN_index to the initial value when the NN shell distance changes
                 if distances[j-1]!=distances[j] : NN_index=0
                 
-                aux_T_vectors[f'{NN_index}'] = np.array([round(el,shell_digits) for el in T_vectors[j-1]])
+                aux_T_vectors[f'{NN_index}'] = np.array([np.round(el, shell_digits) for el in T_vectors[j-1]])
                 aux_J_matrices[f'{NN_index}'] = magint_matrices[j-1]
 
                 # When NN_index is reset to 0, the last bond in the current shell is being stored
@@ -498,7 +536,7 @@ class InputReader :
         '''
         return self.config_info['HAMILTONIAN']['shell_digits']
     
-    def get_B_field(self) -> 'np.ndarray' :
+    def get_B_field(self) -> np.ndarray :
         '''
         Returns the 3D vector for the applied magnetic field B
         within the coordinate system of the spin quantization axis.
@@ -539,19 +577,19 @@ class InputReader :
         '''
         return self.config_info['OUTPUT']['show_plot']
     
-    def get_lattice_vectors(self) -> 'np.ndarray' :
+    def get_lattice_vectors(self) -> np.ndarray :
         '''
         Returns the lattice vectors read from the structure file.
         '''
         return self.struct_info['lattice_vectors']
     
-    def get_mag_ions_pos(self) -> 'np.ndarray' :
+    def get_mag_ions_pos(self) -> np.ndarray :
         '''
         Returns the atomic positions of the magnetic elements in the system read from the structure file.
         '''
         return self.struct_info['mag_ions_pos']
     
-    def get_J_couplings(self) -> list :
+    def get_J_couplings(self) -> list[list] :
         '''
         Returns a list of the interaction matrices stored in the Js_info after the reading procedure.
         Each element in the list contains all the interaction matrices of the corresponding NN shell.
@@ -564,7 +602,7 @@ class InputReader :
                     matrices[-1].append(mat)
         return matrices
 
-    def get_T_vectors(self) -> list :
+    def get_T_vectors(self) -> list[list] :
         '''
         Returns a list of the T vectors connecting NN atoms. They are organized in groups for each NN shell
         and  their order cannot be changed since they are in a 1-1 mapping with the interaction matrices 

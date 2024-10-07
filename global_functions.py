@@ -7,7 +7,7 @@ import traceback
 import json
 
 # Some useful global functions
-def log_exception(exc_type: type[BaseException],exc_value: BaseException,exc_traceback: TracebackType) -> None :
+def log_exception(exc_type: type[BaseException], exc_value: BaseException, exc_traceback: TracebackType) -> None :
     '''
     Logs the details of raised Exceptions to a TXT file named SPIN_REPORT.txt.
     
@@ -16,8 +16,8 @@ def log_exception(exc_type: type[BaseException],exc_value: BaseException,exc_tra
         exc_value (BaseException): Instance of the just raised Exception;
         exc_traceback (traceback.TracebackType): Traceback of the just raised Exception.
     '''
-    with open('SPIN_REPORT.txt','a') as error_file :
-        traceback.print_exception(exc_type,exc_value,exc_traceback,file=error_file)
+    with open('SPIN_REPORT.txt', 'a') as error_file :
+        traceback.print_exception(exc_type, exc_value, exc_traceback, file=error_file)
 
 def print_logo() -> None :
     '''
@@ -38,7 +38,7 @@ def print_logo() -> None :
     print(r"   \ ")
     print("###############################################################")
 
-def clean_line(raw_line: str) -> list :
+def clean_line(raw_line: str) -> list[str] :
     '''
     Removes all the empty spaces and the newline character, useful when reading text files.
 
@@ -69,7 +69,7 @@ def is_spin_acceptable(spin_trial: float) -> bool :
     else :
         return False
     
-def adapt_magintmatrix(matrix: 'np.ndarray') -> 'np.ndarray' :
+def adapt_magintmatrix(matrix: np.ndarray) -> np.ndarray :
     '''
     Adapts the input matrix from the MagInt conventional representation to the stamdard one.
     Example:    [Jyy, Jyz, Jyx]             [Jxx, Jxy, Jxz]
@@ -79,15 +79,17 @@ def adapt_magintmatrix(matrix: 'np.ndarray') -> 'np.ndarray' :
     Args:
         matrix (np.ndarray): Interaction matrix as written into the J couplings file.
     '''
-    new_matrix = np.zeros((3,3))
     if matrix.shape!=(3,3) :
         raise ValueError('The adapt_magintmatrix function only accepts 3x3 square matrices as argument.')
+    
+    new_matrix = np.zeros((3,3))
     for r in range(-1,matrix.shape[0]-1) :
         for c in range(-1,matrix.shape[1]-1) :
             new_matrix[r+1][c+1] = matrix[r][c]
+    
     return new_matrix
 
-def solve_by_lanczos(hamiltonian: 'np.ndarray',n_excited: int,lanczos_digits: int) -> tuple :
+def solve_by_lanczos(hamiltonian: np.ndarray, n_excited: int, lanczos_digits: int) -> tuple :
     '''
     Performs Lanczos algorithm until the whole ground-state eigenspace and the requested excited eigenstates are identified,
     meaning both the eigenvectors and the associated eigenenergies. The excited states' counting takes into account degeneracies.
@@ -127,7 +129,7 @@ def solve_by_lanczos(hamiltonian: 'np.ndarray',n_excited: int,lanczos_digits: in
 
         n += 1
 
-def save_data(energies: 'np.ndarray',spin_correlations: tuple,magnetization: float) -> None :
+def save_data(energies: np.ndarray, spin_correlations: tuple[np.ndarray], magnetization: float) -> None :
     '''
     Saves all the relevant data about the just performed Lanczos aloìgorithm, as well as
     the spin-spin correlation values and the magnetization.
@@ -162,17 +164,23 @@ def save_data(energies: 'np.ndarray',spin_correlations: tuple,magnetization: flo
                 i += 1
     
     # Write the data into a JSON file
-    with open('SPIN_OUT.json','w') as file :
-        json.dump(data_dict,file,indent=4)
+    with open('SPIN_OUT.json', 'w') as file :
+        json.dump(data_dict, file, indent=4)
         print('All the relevant data is finally saved.')
 
-def map_spin_correlations(system: SpinSystem,spin_correlations: tuple,shell_digits: int,n_dim: int) -> tuple :
+def map_spin_correlations(
+        system: SpinSystem,
+        spin_correlations: tuple[np.ndarray],
+        shell_digits: int,
+        n_dim: int
+    ) -> tuple[list] :
     '''
     Maps the just obtained spin-spin correlation values to the associated NN shell, exploiting the find_NN_shell
     method defined above.
     
     Args:
-        spin_correlations (tuple): Tuple of the spin-spin correlation matrices, the indices specify the associated spin pair;
+        system (SpinSystem): Instance of the spin system, including its main properties;
+        spin_correlations (tuple[np.ndarray]): Tuple of the spin-spin correlation matrices, the indices specify the associated spin pair;
         shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance;
         n_dim (int): Number of spatial dimensions of the spin system under study.
     '''
@@ -190,7 +198,7 @@ def map_spin_correlations(system: SpinSystem,spin_correlations: tuple,shell_digi
     nn = 1
     is_replica_found = False
     while not is_replica_found :
-        shell_indices, shell_vectors = system.find_NN_shell(0,nn,shell_digits,n_dim)
+        shell_indices, shell_vectors = system.find_NN_shell(0, nn, shell_digits, n_dim)
         
         # Store the spin-spin correlation of the current NN shell
         for i in range(4) :
@@ -205,14 +213,20 @@ def map_spin_correlations(system: SpinSystem,spin_correlations: tuple,shell_digi
     
     return spin_corr_data, distances
 
-def plot_data(system: SpinSystem,spin_correlations: tuple,magnetization: float,shell_digits: int,n_dim: int) -> None :
+def plot_data(
+        system: SpinSystem,
+        spin_correlations: tuple[np.ndarray],
+        magnetization: float,
+        shell_digits: int,
+        n_dim: int
+    ) -> None :
     '''
     Use matplotlib tools for plotting the just obtained spin-spin correlation values as a function of the intersite distance
     of the spin pair they are refered to. The resulting magnetization modulus is also reported as an horizontal line.
       
     Args:
         system (SpinSystem): Physical system under study, in order to have an easier access to its properties;
-        spin_correlations (tuple): Tuple of the spin-spin correlation matrices, the indices specify the associated spin pair;
+        spin_correlations (tuple[np.ndarray]): Tuple of the spin-spin correlation matrices, the indices specify the associated spin pair;
         magnetization (float): Modulus of the magnetization vector;
         shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance;
         n_dim (int): Number of spatial dimensions of the spin system under study.
@@ -225,24 +239,27 @@ def plot_data(system: SpinSystem,spin_correlations: tuple,magnetization: float,s
 
     # Initialize the figure and add some aesthetics
     fig, axs = plt.subplots(figsize=(10,6))
-    axs.set_title('Spin-spin correlation function',fontdict={'fontsize': 20})
-    axs.set_xlabel(r'Intersite distance |$\vec{R}_{ij}$| (Å)',fontdict={'fontsize': 16})
-    axs.set_ylabel('Exp. value',fontdict={'fontsize': 16})
+    axs.set_title('Spin-spin correlation function', fontdict={'fontsize': 20})
+    axs.set_xlabel(r'Intersite distance |$\vec{R}_{ij}$| (Å)', fontdict={'fontsize': 16})
+    axs.set_ylabel('Exp. value', fontdict={'fontsize': 16})
     styles = ['o-','s-','P-','d-']
-    labels = [r'$S^{(i)}_x \cdot S^{(j)}_x$',r'$S^{(i)}_y \cdot S^{(j)}_y$',r'$S^{(i)}_z \cdot S^{(j)}_z$',r'$\vec{S}^{(i)} \cdot \vec{S}^{(i)}$']
+    labels = [r'$S^{(i)}_x \cdot S^{(j)}_x$',
+              r'$S^{(i)}_y \cdot S^{(j)}_y$',
+              r'$S^{(i)}_z \cdot S^{(j)}_z$',
+              r'$\vec{S}^{(i)} \cdot \vec{S}^{(i)}$']
     
     # Sort the spin-spin correlations by the associated intersite distance
-    spin_corr_data, distances = map_spin_correlations(system,spin_correlations,shell_digits,n_dim)
+    spin_corr_data, distances = map_spin_correlations(system, spin_correlations, shell_digits, n_dim)
     x_min = -0.01*distances[-1]
     x_max = 1.01*distances[-1]
     axs.set_xlim(x_min,x_max)
     for i in range(4) :
-        axs.plot(distances,spin_corr_data[i],styles[i],markersize=8,markerfacecolor='white',label=labels[i])
-    axs.plot(np.linspace(0.0,distances[-1],2),[magnetization for i in range(2)],'k--',label=r'|$\vec{M}$|')
+        axs.plot(distances, spin_corr_data[i], styles[i], markersize=8, markerfacecolor='white', label=labels[i])
+    axs.plot(np.linspace(0.0,distances[-1],2), [magnetization for i in range(2)], 'k--', label=r'|$\vec{M}$|')
     
     # Just some final aesthetics and save
-    plt.grid(linestyle='--',linewidth=0.5)
-    plt.fill_between(distances,spin_corr_data[3],color='gray',alpha=0.3)
+    plt.grid(linestyle='--', linewidth=0.5)
+    plt.fill_between(distances, spin_corr_data[3], color='gray', alpha=0.3)
     plt.legend(loc='best')
     plt.savefig('SPIN_CORRS.png')
     print('All the relevant data is finally plotted.')
