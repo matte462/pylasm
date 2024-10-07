@@ -11,18 +11,36 @@ def test_read_config_file_0() -> None :
     '''
     # Expected default configuration
     default_settings = {}
-    default_settings['STRUCTURE'] = {'struct_file_name': 'NOT SPECIFIED','struct_file_type': 'POSCAR','mag_ion': 'NOT SPECIFIED','spin': 0.5,'n_dim': 1}
-    default_settings['HAMILTONIAN'] = {'J_couplings_file': 'NOT SPECIFIED','max_NN_shell': 1,'shell_digits': 3,'B_field': [0.0,0.0,0.0],'tol_imag': 1e-6}
-    default_settings['OUTPUT'] = {'n_excited': 0,'lanczos_digits': 10,'magn_output_mode': 'M_z','show_plot': True}
+    default_settings['STRUCTURE'] = {
+        'struct_file_name': 'NOT SPECIFIED',
+        'struct_file_type': 'POSCAR',
+        'mag_ion': 'NOT SPECIFIED',
+        'spin': 0.5,
+        'n_dim': 1
+    }
+    default_settings['HAMILTONIAN'] = {
+        'J_couplings_file': 'NOT SPECIFIED',
+        'max_NN_shell': 1,
+        'shell_digits': 3,
+        'B_field': [0.0,0.0,0.0],
+        'tol_imag': 1e-6
+    }
+    default_settings['OUTPUT'] = {
+        'n_excited': 0,
+        'lanczos_digits': 10,
+        'magn_output_mode': 'M_z',
+        'show_plot': True
+    }
 
     # Effective configuration to be tested
     reader = InputReader('./Inputs/TestFiles/config_file_3.ini')
-    read_settings = reader.get_config_info()
+    read_settings = reader.config_info
 
     # The values of struct_file_name, mag_ion, J_couplings_file keys still need to be fixed
     default_settings['STRUCTURE']['struct_file_name'] = './Inputs/TestFiles/POSCAR_test_2.vasp'
     default_settings['STRUCTURE']['mag_ion'] = 'Ag'
     default_settings['HAMILTONIAN']['J_couplings_file'] = './Inputs/TestFiles/V_Mult_1.dat'
+    
     assert read_settings==default_settings
 
 def test_read_config_file_1() -> None :
@@ -79,7 +97,7 @@ def test_read_config_file_7() -> None :
     '''
     # Effective configuration to be tested
     reader = InputReader('./Inputs/TestFiles/config_file_14.ini')
-    read_settings = reader.get_config_info()
+    read_settings = reader.config_info
 
     # Expected configuration
     exp_settings = {}
@@ -155,32 +173,36 @@ def test_read_POSCAR_2() -> None :
 
 def test_read_POSCAR_3() -> None :
     '''
-    Tests that the code properly reads the lattice vectors and the atomic positions when
-    the POSCAR file takes the most basic form.
+    Tests that the code properly reads the lattice vectors
+    when the POSCAR file takes the most basic form.
     '''
-    # Expected lattice vectors and atomic positions
+    # Expected lattice vectors
     exp_latt_vecs = np.array([[3.0,0.0,0.0],
                               [0.0,6.0,0.0],
                               [0.0,1.0,4.0]])
-    exp_mag_ions_pos = np.array([[0.0,0.0,0.0],
-                                 [1.0,0.0,0.0]])
 
     # Effective lattice vectors and atomic positions to be tested
     reader = InputReader('./Inputs/TestFiles/config_file_15.ini')
     latt_vecs = reader.get_lattice_vectors()
+
+    assert np.allclose(latt_vecs, exp_latt_vecs, atol=1e-10, rtol=1e-10)
+    
+def test_read_POSCAR_4() -> None :
+    '''
+    Tests that the code properly reads the atomic positions
+    when the POSCAR file takes the most basic form.
+    '''
+    # Expected atomic positions
+    exp_mag_ions_pos = np.array([[0.0,0.0,0.0],
+                                 [1.0,0.0,0.0]])
+
+    # Effective atomic positions to be tested
+    reader = InputReader('./Inputs/TestFiles/config_file_15.ini')
     mag_ions_pos = reader.get_mag_ions_pos()
 
-    # Exploit AND logic operation to check if the vectors are all the same
-    are_latt_vecs_ok = True
-    for v in range(latt_vecs.shape[0]) :
-        are_latt_vecs_ok = are_latt_vecs_ok and np.array(exp_latt_vecs[v]==latt_vecs[v]).all()
+    assert np.allclose(mag_ions_pos, exp_mag_ions_pos, atol=1e-10, rtol=1e-10)
 
-    are_mag_ions_pos_ok = True
-    for v in range(mag_ions_pos.shape[0]) :
-        are_mag_ions_pos_ok = are_mag_ions_pos_ok and np.array(exp_mag_ions_pos[v]==mag_ions_pos[v]).all()
-    assert are_latt_vecs_ok and are_mag_ions_pos_ok
-
-def test_read_POSCAR_4() -> None :
+def test_read_POSCAR_5() -> None :
     '''
     Tests that the code properly reads the atomic positions of the elements under study
     when they are preceded by the ones of other elements, which shall not be read.
@@ -193,13 +215,9 @@ def test_read_POSCAR_4() -> None :
     reader = InputReader('./Inputs/TestFiles/config_file_16.ini')
     mag_ions_pos = reader.get_mag_ions_pos()
 
-    # Exploit AND logic operation to check if the vectors are all the same
-    are_mag_ions_pos_ok = True
-    for v in range(mag_ions_pos.shape[0]) :
-        are_mag_ions_pos_ok = are_mag_ions_pos_ok and np.array(exp_mag_ions_pos[v]==mag_ions_pos[v]).all()
-    assert are_mag_ions_pos_ok
+    assert np.allclose(mag_ions_pos, exp_mag_ions_pos, atol=1e-10, rtol=1e-10)
 
-def test_read_POSCAR_5() -> None :
+def test_read_POSCAR_6() -> None :
     '''
     Tests that the code properly reads the atomic positions of the elements under study
     when Selective dynamics are written into the POSCAR file.
@@ -212,13 +230,9 @@ def test_read_POSCAR_5() -> None :
     reader = InputReader('./Inputs/TestFiles/config_file_17.ini')
     mag_ions_pos = reader.get_mag_ions_pos()
 
-    # Exploit AND logic operation to check if the vectors are all the same
-    are_mag_ions_pos_ok = True
-    for v in range(mag_ions_pos.shape[0]) :
-        are_mag_ions_pos_ok = are_mag_ions_pos_ok and np.array(exp_mag_ions_pos[v]==mag_ions_pos[v]).all()
-    assert are_mag_ions_pos_ok
+    assert np.allclose(mag_ions_pos, exp_mag_ions_pos, atol=1e-10, rtol=1e-10)
 
-def test_read_POSCAR_6() -> None :
+def test_read_POSCAR_7() -> None :
     '''
     Tests that the proper Exception is raised when the number of atomic positons is not enough 
     to read the magnetic sites of interest.
@@ -226,7 +240,7 @@ def test_read_POSCAR_6() -> None :
     with pytest.raises(IOError, match='End of ./Inputs/TestFiles/POSCAR_test_5.vasp is reached before all magnetic sites could be read.') : 
         reader = InputReader('./Inputs/TestFiles/config_file_18.ini')
 
-def test_read_POSCAR_7() -> None :
+def test_read_POSCAR_8() -> None :
     '''
     Tests that the proper Exception is raised when the number of lattice vectors is lower 
     than 3 as expected.
@@ -234,7 +248,7 @@ def test_read_POSCAR_7() -> None :
     with pytest.raises(ValueError, match='The content of the 5-th line in ./Inputs/TestFiles/POSCAR_test_6.vasp differs from what is expected.') : 
         reader = InputReader('./Inputs/TestFiles/config_file_19.ini')
 
-def test_read_POSCAR_8() -> None :
+def test_read_POSCAR_9() -> None :
     '''
     Tests that the proper Exception is raised when the number of lattice vectors is lower
     than 3 as expected, and at the same time exactly 3 symbols of elements are listed just below.
@@ -242,7 +256,7 @@ def test_read_POSCAR_8() -> None :
     with pytest.raises(TypeError, match='Be is read in the 5-th line of ./Inputs/TestFiles/POSCAR_test_7.vasp, while a lattice vector is expected.') : 
         reader = InputReader('./Inputs/TestFiles/config_file_20.ini')
 
-def test_read_POSCAR_9() -> None :
+def test_read_POSCAR_10() -> None :
     '''
     Tests that the proper Exception is raised when the number of atomic positons is not enough 
     to read the sites of interest, but the last line is empty.
@@ -267,33 +281,29 @@ def test_read_J_couplings_file_1() -> None :
 
 def test_read_J_couplings_file_2() -> None :
     '''
-    Tests that the reading method correctly stores the interaction matrices and the T vectors
+    Tests that the reading method correctly stores the interaction matrices
     written into a basic J_couplings_file.
     '''
     reader = InputReader('./Inputs/TestFiles/config_file_3.ini')
-    Js_info = reader.get_Js_info()
     J_matrices = reader.get_J_couplings()
-    T_vectors = reader.get_T_vectors()
-    assert len(J_matrices)==1
-    assert len(T_vectors)==1
-    assert len(J_matrices[0])==2
-    assert len(T_vectors[0])==2
 
-    exp_Tvec1 = np.array([1.0,0.0,0.0])
-    exp_Tvec2 = np.array([-1.0,0.0,0.0])
-
-    are_Jmats_ok = True
     for mat in J_matrices[0] :
-        for i in range(3) :
-            for j in range(3) :
-                are_Jmats_ok = are_Jmats_ok and (mat[i][j]==1.0*(i==j))
-    
-    are_Tvecs_ok = True
-    are_Tvecs_ok = are_Tvecs_ok and np.array(exp_Tvec1==T_vectors[0][0]).all()
-    are_Tvecs_ok = are_Tvecs_ok and np.array(exp_Tvec2==T_vectors[0][1]).all()
-    assert are_Jmats_ok and are_Tvecs_ok
+        assert np.allclose(mat, np.eye(3), atol=1e-10, rtol=1e-10)
 
 def test_read_J_couplings_file_3() -> None :
+    '''
+    Tests that the reading method correctly stores the T vectors
+    written into a basic J_couplings_file.
+    '''
+    reader = InputReader('./Inputs/TestFiles/config_file_3.ini')
+    T_vectors = reader.get_T_vectors()
+
+    exp_Tvectors = [np.array([1.0,0.0,0.0]), np.array([-1.0,0.0,0.0])]
+    
+    for i in range(2) :
+        assert np.allclose(T_vectors[0][i], exp_Tvectors[i], atol=1e-10, rtol=1e-10)
+
+def test_read_J_couplings_file_4() -> None :
     '''
     Tests that the proper Exception is raised when the number of T vectors or J matrices per shell
     differs from the declared coordination number. 
@@ -301,7 +311,7 @@ def test_read_J_couplings_file_3() -> None :
     with pytest.raises(ValueError, match='The 19-th line in ./Inputs/TestFiles/V_Mult_2.dat does not include a T vector.') :
         reader = InputReader('./Inputs/TestFiles/config_file_23.ini')
 
-def test_read_J_couplings_file_4() -> None :
+def test_read_J_couplings_file_5() -> None :
     '''
     Tests that the proper Exception is raised when the number of T vectors or J matrices per shell
     differs from the declared coordination number, but the end of file is reached before

@@ -74,7 +74,4 @@ def test_adapt_magintmatrix_1() -> None :
                            [6.0,4.0,5.0]])
     new_matrix = adapt_magintmatrix(matrix)
 
-    is_new_matrix_ok = True
-    for r in range(new_matrix.shape[0]) :
-        is_new_matrix_ok = is_new_matrix_ok and np.array(exp_matrix[r]==new_matrix[r]).all()
-    assert is_new_matrix_ok==True
+    assert np.allclose(new_matrix, exp_matrix, atol=1e-10, rtol=1e-10)
