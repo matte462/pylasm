@@ -1,5 +1,25 @@
 # <h1 style="text-align: center; font-size: 3em;">Changelog</h1>
 
+## 2024-10-29 Matteo Costa <mattecosta48@gmail.com>
+
+- ### global_functions.py (map_spin_correlations):
+> A ValueError exception is now raised if the given spin-spin correlation matrices are not symmetric within a fixed tolerance (1e-10). This feature derives from the fact that spin-spin correlation values must not depend on the order of the interested spins.
+
+- ### spin_system.py (find_NN_shell):
+> Two distinct parts of the code for the implementation of the find_NN_shell method are now included into other two methods of the SpinSystem class, namely find_shift_indices and update_shell_arrays. The main ideas behind the separation of the code blocks in question is to facilitate the readibility and to improve the effectiveness of the associated test functions.
+
+- ### spin_system.py (find_shift_indices):
+> This method allows the user to access all the sites within the unit cell and its adjacent raplica due to periodic buondary conditions. In particular, the shift vectors which lead the input sites to the associated replica are expressed in terms of the effective lattice vectors. The notation is outlined within the docstring at the beginning of the method itself, alongside with a practical example.
+
+- ### spin_system.py (update_shell_arrays):
+> This method exploits the list of integer tuples from find_shift_indices to access all the sites within the given NN unit cells. Due to the specific implementation of find_shift_indices, it also perform a preliminary shift to the "lowest" NN unit cell (the most left replica in the 1D case, the most low-left replica in the 2D case and the most low-left replica within the lowest a-b plane in the 3D case).
+
+- ### test_global_functions.py:
+> I have added new test functions to make sure adapt_magintmatrix, map_spin_correlations and solve_by_lanczos provide the expected results.
+
+- ### test_spin_system.py:
+> I have added new test functions to make sure find_shift_indices and update_shell_arrays provide the expected results.
+
 ## 2024-10-07 Matteo Costa <mattecosta48@gmail.com>
 
 - ### README.md:
