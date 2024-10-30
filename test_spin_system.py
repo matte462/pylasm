@@ -1759,3 +1759,870 @@ def test_compute_magnetization_23() -> None :
     M_full = system.compute_magnetization(GS_vec,4,'M_full')
     M_full_exp = np.sqrt(1.5)/2
     assert np.abs(M_full-M_full_exp)<1e-10
+
+def test_find_shift_indices_0() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 1D spin system with equally-spaced sites.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    assert shift_indices==[(0,)]
+
+def test_find_shift_indices_1() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 1D spin system with equally-spaced sites.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    assert shift_indices==[(0,),(2,)]
+
+def test_find_shift_indices_2() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 1D spin system with equally-spaced sites.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 2)
+    assert shift_indices==[(0,),(4,)]
+
+def test_find_shift_indices_3() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 1D spin system with longitudinal distortions.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.4,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    assert shift_indices==[(0,)]
+
+def test_find_shift_indices_4() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 1D spin system with longitudinal distortions.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.4,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    assert shift_indices==[(0,),(2,)]
+
+def test_find_shift_indices_5() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 1D spin system with longitudinal distortions.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.4,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 2)
+    assert shift_indices==[(0,),(4,)]
+
+def test_find_shift_indices_6() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D square system.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    assert shift_indices==[(0,0)]
+
+def test_find_shift_indices_7() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D square system.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    assert shift_indices==[(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]
+
+def test_find_shift_indices_8() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D square system.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 2)
+    assert shift_indices==[(0,0),(0,1),(0,2),(0,3),(0,4),(1,0),(1,4),(2,0),(2,4),(3,0),(3,4),(4,0),(4,1),(4,2),(4,3),(4,4)]
+
+def test_find_shift_indices_9() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D rectangular system.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    assert shift_indices==[(0,0)]
+
+def test_find_shift_indices_10() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D rectangular system.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    assert shift_indices==[(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]
+
+def test_find_shift_indices_11() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D rectangular system.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 2)
+    assert shift_indices==[(0,0),(0,1),(0,2),(0,3),(0,4),(1,0),(1,4),(2,0),(2,4),(3,0),(3,4),(4,0),(4,1),(4,2),(4,3),(4,4)]
+
+def test_find_shift_indices_12() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D triangular system.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[np.cos(np.pi/3),np.sin(np.pi/3),0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[np.cos(np.pi/3),np.sin(np.pi/3),0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    assert shift_indices==[(0,0)]
+
+def test_find_shift_indices_13() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D triangular system.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[np.cos(np.pi/3),np.sin(np.pi/3),0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[np.cos(np.pi/3),np.sin(np.pi/3),0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    assert shift_indices==[(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]
+
+def test_find_shift_indices_14() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D triangular system.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[np.cos(np.pi/3),np.sin(np.pi/3),0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[np.cos(np.pi/3),np.sin(np.pi/3),0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 2)
+    assert shift_indices==[(0,0),(0,1),(0,2),(0,3),(0,4),(1,0),(1,4),(2,0),(2,4),(3,0),(3,4),(4,0),(4,1),(4,2),(4,3),(4,4)]
+
+def test_find_shift_indices_15() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D hexagonal system.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[np.cos(np.pi/6),np.sin(np.pi/6),0.0],[-np.cos(np.pi/6),np.sin(np.pi/6),0.0],[0.0,0.0,10.0]])
+    sites = np.array([[-0.2,0.5,0.0],[0.2,0.5,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[np.cos(np.pi/6),np.sin(np.pi/6),0.0],[-np.cos(np.pi/6),np.sin(np.pi/6),0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    assert shift_indices==[(0,0)]
+
+def test_find_shift_indices_16() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D hexagonal system.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[np.cos(np.pi/6),np.sin(np.pi/6),0.0],[-np.cos(np.pi/6),np.sin(np.pi/6),0.0],[0.0,0.0,10.0]])
+    sites = np.array([[-0.2,0.5,0.0],[0.2,0.5,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[np.cos(np.pi/6),np.sin(np.pi/6),0.0],[-np.cos(np.pi/6),np.sin(np.pi/6),0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    assert shift_indices==[(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]
+
+def test_find_shift_indices_17() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 2D hexagonal system.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[np.cos(np.pi/6),np.sin(np.pi/6),0.0],[-np.cos(np.pi/6),np.sin(np.pi/6),0.0],[0.0,0.0,10.0]])
+    sites = np.array([[-0.2,0.5,0.0],[0.2,0.5,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[np.cos(np.pi/6),np.sin(np.pi/6),0.0],[-np.cos(np.pi/6),np.sin(np.pi/6),0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 2)
+    assert shift_indices==[(0,0),(0,1),(0,2),(0,3),(0,4),(1,0),(1,4),(2,0),(2,4),(3,0),(3,4),(4,0),(4,1),(4,2),(4,3),(4,4)]
+
+def test_find_shift_indices_18() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D triclinic system.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[-0.2,0.8,0.0],[0.2,0.3,0.7]])
+    sites = np.array([[0.0,0.0,0.0],[0.1,0.1,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 0)
+    assert shift_indices==[(0,0,0)]
+
+def test_find_shift_indices_19() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D triclinic system.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[-0.2,0.8,0.0],[0.2,0.3,0.7]])
+    sites = np.array([[0.0,0.0,0.0],[0.1,0.1,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 1)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,1,0),(0,1,1),(0,1,2),(0,2,0),(0,2,1),(0,2,2),
+                           (1,0,0),(1,0,1),(1,0,2),(1,1,0),(1,1,2),(1,2,0),(1,2,1),(1,2,2),(2,0,0),
+                           (2,0,1),(2,0,2),(2,1,0),(2,1,1),(2,1,2),(2,2,0),(2,2,1),(2,2,2)]
+
+def test_find_shift_indices_20() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D triclinic system.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[-0.2,0.8,0.0],[0.2,0.3,0.7]])
+    sites = np.array([[0.0,0.0,0.0],[0.1,0.1,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 2)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,0,4),(0,1,0),(0,1,1),(0,1,2),(0,1,3),
+                           (0,1,4),(0,2,0),(0,2,1),(0,2,2),(0,2,3),(0,2,4),(0,3,0),(0,3,1),(0,3,2),
+                           (0,3,3),(0,3,4),(0,4,0),(0,4,1),(0,4,2),(0,4,3),(0,4,4),(1,0,0),(1,0,1),
+                           (1,0,2),(1,0,3),(1,0,4),(1,1,0),(1,1,4),(1,2,0),(1,2,4),(1,3,0),(1,3,4),
+                           (1,4,0),(1,4,1),(1,4,2),(1,4,3),(1,4,4),(2,0,0),(2,0,1),(2,0,2),(2,0,3),
+                           (2,0,4),(2,1,0),(2,1,4),(2,2,0),(2,2,4),(2,3,0),(2,3,4),(2,4,0),(2,4,1),
+                           (2,4,2),(2,4,3),(2,4,4),(3,0,0),(3,0,1),(3,0,2),(3,0,3),(3,0,4),(3,1,0),
+                           (3,1,4),(3,2,0),(3,2,4),(3,3,0),(3,3,4),(3,4,0),(3,4,1),(3,4,2),(3,4,3),
+                           (3,4,4),(4,0,0),(4,0,1),(4,0,2),(4,0,3),(4,0,4),(4,1,0),(4,1,1),(4,1,2),
+                           (4,1,3),(4,1,4),(4,2,0),(4,2,1),(4,2,2),(4,2,3),(4,2,4),(4,3,0),(4,3,1),
+                           (4,3,2),(4,3,3),(4,3,4),(4,4,0),(4,4,1),(4,4,2),(4,4,3),(4,4,4)]
+
+def test_find_shift_indices_21() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D monoclinic system.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0],[0.0,0.3,0.7]])
+    sites = np.array([[0.0,0.0,0.0],[0.3,0.6,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 0)
+    assert shift_indices==[(0,0,0)]
+
+def test_find_shift_indices_22() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D monoclinic system.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0],[0.0,0.3,0.7]])
+    sites = np.array([[0.0,0.0,0.0],[0.3,0.6,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 1)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,1,0),(0,1,1),(0,1,2),(0,2,0),(0,2,1),(0,2,2),
+                           (1,0,0),(1,0,1),(1,0,2),(1,1,0),(1,1,2),(1,2,0),(1,2,1),(1,2,2),(2,0,0),
+                           (2,0,1),(2,0,2),(2,1,0),(2,1,1),(2,1,2),(2,2,0),(2,2,1),(2,2,2)]
+
+def test_find_shift_indices_23() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D monoclinic system.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0],[0.0,0.3,0.7]])
+    sites = np.array([[0.0,0.0,0.0],[0.3,0.6,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 2)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,0,4),(0,1,0),(0,1,1),(0,1,2),(0,1,3),
+                           (0,1,4),(0,2,0),(0,2,1),(0,2,2),(0,2,3),(0,2,4),(0,3,0),(0,3,1),(0,3,2),
+                           (0,3,3),(0,3,4),(0,4,0),(0,4,1),(0,4,2),(0,4,3),(0,4,4),(1,0,0),(1,0,1),
+                           (1,0,2),(1,0,3),(1,0,4),(1,1,0),(1,1,4),(1,2,0),(1,2,4),(1,3,0),(1,3,4),
+                           (1,4,0),(1,4,1),(1,4,2),(1,4,3),(1,4,4),(2,0,0),(2,0,1),(2,0,2),(2,0,3),
+                           (2,0,4),(2,1,0),(2,1,4),(2,2,0),(2,2,4),(2,3,0),(2,3,4),(2,4,0),(2,4,1),
+                           (2,4,2),(2,4,3),(2,4,4),(3,0,0),(3,0,1),(3,0,2),(3,0,3),(3,0,4),(3,1,0),
+                           (3,1,4),(3,2,0),(3,2,4),(3,3,0),(3,3,4),(3,4,0),(3,4,1),(3,4,2),(3,4,3),
+                           (3,4,4),(4,0,0),(4,0,1),(4,0,2),(4,0,3),(4,0,4),(4,1,0),(4,1,1),(4,1,2),
+                           (4,1,3),(4,1,4),(4,2,0),(4,2,1),(4,2,2),(4,2,3),(4,2,4),(4,3,0),(4,3,1),
+                           (4,3,2),(4,3,3),(4,3,4),(4,4,0),(4,4,1),(4,4,2),(4,4,3),(4,4,4)]
+
+def test_find_shift_indices_24() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D orthorhombic system.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0],[0.0,0.0,3.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.3,0.6,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 0)
+    assert shift_indices==[(0,0,0)]
+
+def test_find_shift_indices_25() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D orthorhombic system.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0],[0.0,0.0,3.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.3,0.6,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 1)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,1,0),(0,1,1),(0,1,2),(0,2,0),(0,2,1),(0,2,2),
+                           (1,0,0),(1,0,1),(1,0,2),(1,1,0),(1,1,2),(1,2,0),(1,2,1),(1,2,2),(2,0,0),
+                           (2,0,1),(2,0,2),(2,1,0),(2,1,1),(2,1,2),(2,2,0),(2,2,1),(2,2,2)]
+
+def test_find_shift_indices_26() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D orthorhombic system.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,2.0,0.0],[0.0,0.0,3.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.3,0.6,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 2)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,0,4),(0,1,0),(0,1,1),(0,1,2),(0,1,3),
+                           (0,1,4),(0,2,0),(0,2,1),(0,2,2),(0,2,3),(0,2,4),(0,3,0),(0,3,1),(0,3,2),
+                           (0,3,3),(0,3,4),(0,4,0),(0,4,1),(0,4,2),(0,4,3),(0,4,4),(1,0,0),(1,0,1),
+                           (1,0,2),(1,0,3),(1,0,4),(1,1,0),(1,1,4),(1,2,0),(1,2,4),(1,3,0),(1,3,4),
+                           (1,4,0),(1,4,1),(1,4,2),(1,4,3),(1,4,4),(2,0,0),(2,0,1),(2,0,2),(2,0,3),
+                           (2,0,4),(2,1,0),(2,1,4),(2,2,0),(2,2,4),(2,3,0),(2,3,4),(2,4,0),(2,4,1),
+                           (2,4,2),(2,4,3),(2,4,4),(3,0,0),(3,0,1),(3,0,2),(3,0,3),(3,0,4),(3,1,0),
+                           (3,1,4),(3,2,0),(3,2,4),(3,3,0),(3,3,4),(3,4,0),(3,4,1),(3,4,2),(3,4,3),
+                           (3,4,4),(4,0,0),(4,0,1),(4,0,2),(4,0,3),(4,0,4),(4,1,0),(4,1,1),(4,1,2),
+                           (4,1,3),(4,1,4),(4,2,0),(4,2,1),(4,2,2),(4,2,3),(4,2,4),(4,3,0),(4,3,1),
+                           (4,3,2),(4,3,3),(4,3,4),(4,4,0),(4,4,1),(4,4,2),(4,4,3),(4,4,4)]
+
+def test_find_shift_indices_27() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D tetragonal system.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,3.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.5,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 0)
+    assert shift_indices==[(0,0,0)]
+
+def test_find_shift_indices_28() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D tetragonal system.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,3.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.5,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 1)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,1,0),(0,1,1),(0,1,2),(0,2,0),(0,2,1),(0,2,2),
+                           (1,0,0),(1,0,1),(1,0,2),(1,1,0),(1,1,2),(1,2,0),(1,2,1),(1,2,2),(2,0,0),
+                           (2,0,1),(2,0,2),(2,1,0),(2,1,1),(2,1,2),(2,2,0),(2,2,1),(2,2,2)]
+
+def test_find_shift_indices_29() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D tetragonal system.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,3.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.5,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 2)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,0,4),(0,1,0),(0,1,1),(0,1,2),(0,1,3),
+                           (0,1,4),(0,2,0),(0,2,1),(0,2,2),(0,2,3),(0,2,4),(0,3,0),(0,3,1),(0,3,2),
+                           (0,3,3),(0,3,4),(0,4,0),(0,4,1),(0,4,2),(0,4,3),(0,4,4),(1,0,0),(1,0,1),
+                           (1,0,2),(1,0,3),(1,0,4),(1,1,0),(1,1,4),(1,2,0),(1,2,4),(1,3,0),(1,3,4),
+                           (1,4,0),(1,4,1),(1,4,2),(1,4,3),(1,4,4),(2,0,0),(2,0,1),(2,0,2),(2,0,3),
+                           (2,0,4),(2,1,0),(2,1,4),(2,2,0),(2,2,4),(2,3,0),(2,3,4),(2,4,0),(2,4,1),
+                           (2,4,2),(2,4,3),(2,4,4),(3,0,0),(3,0,1),(3,0,2),(3,0,3),(3,0,4),(3,1,0),
+                           (3,1,4),(3,2,0),(3,2,4),(3,3,0),(3,3,4),(3,4,0),(3,4,1),(3,4,2),(3,4,3),
+                           (3,4,4),(4,0,0),(4,0,1),(4,0,2),(4,0,3),(4,0,4),(4,1,0),(4,1,1),(4,1,2),
+                           (4,1,3),(4,1,4),(4,2,0),(4,2,1),(4,2,2),(4,2,3),(4,2,4),(4,3,0),(4,3,1),
+                           (4,3,2),(4,3,3),(4,3,4),(4,4,0),(4,4,1),(4,4,2),(4,4,3),(4,4,4)]
+
+def test_find_shift_indices_30() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D fcc cubic system.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[0.5,0.5,0.0],[0.5,0.0,0.5],[0.0,0.5,0.5]])
+    sites = np.array([[0.0,0.0,0.0],[0.25,0.25,0.25]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 0)
+    assert shift_indices==[(0,0,0)]
+
+def test_find_shift_indices_31() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D fcc cubic system.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[0.5,0.5,0.0],[0.5,0.0,0.5],[0.0,0.5,0.5]])
+    sites = np.array([[0.0,0.0,0.0],[0.25,0.25,0.25]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 1)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,1,0),(0,1,1),(0,1,2),(0,2,0),(0,2,1),(0,2,2),
+                           (1,0,0),(1,0,1),(1,0,2),(1,1,0),(1,1,2),(1,2,0),(1,2,1),(1,2,2),(2,0,0),
+                           (2,0,1),(2,0,2),(2,1,0),(2,1,1),(2,1,2),(2,2,0),(2,2,1),(2,2,2)]
+
+def test_find_shift_indices_32() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D fcc cubic system.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[0.5,0.5,0.0],[0.5,0.0,0.5],[0.0,0.5,0.5]])
+    sites = np.array([[0.0,0.0,0.0],[0.25,0.25,0.25]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 2)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,0,4),(0,1,0),(0,1,1),(0,1,2),
+                           (0,1,3),(0,1,4),(0,2,0),(0,2,1),(0,2,2),(0,2,3),(0,2,4),(0,3,0),
+                           (0,3,1),(0,3,2),(0,3,3),(0,3,4),(0,4,0),(0,4,1),(0,4,2),(0,4,3),
+                           (0,4,4),(1,0,0),(1,0,1),(1,0,2),(1,0,3),(1,0,4),(1,1,0),(1,1,4),
+                           (1,2,0),(1,2,4),(1,3,0),(1,3,4),(1,4,0),(1,4,1),(1,4,2),(1,4,3),
+                           (1,4,4),(2,0,0),(2,0,1),(2,0,2),(2,0,3),(2,0,4),(2,1,0),(2,1,4),
+                           (2,2,0),(2,2,4),(2,3,0),(2,3,4),(2,4,0),(2,4,1),(2,4,2),(2,4,3),
+                           (2,4,4),(3,0,0),(3,0,1),(3,0,2),(3,0,3),(3,0,4),(3,1,0),(3,1,4),
+                           (3,2,0),(3,2,4),(3,3,0),(3,3,4),(3,4,0),(3,4,1),(3,4,2),(3,4,3),
+                           (3,4,4),(4,0,0),(4,0,1),(4,0,2),(4,0,3),(4,0,4),(4,1,0),(4,1,1),
+                           (4,1,2),(4,1,3),(4,1,4),(4,2,0),(4,2,1),(4,2,2),(4,2,3),(4,2,4),
+                           (4,3,0),(4,3,1),(4,3,2),(4,3,3),(4,3,4),(4,4,0),(4,4,1),(4,4,2),
+                           (4,4,3),(4,4,4)]
+
+def test_find_shift_indices_33() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D bcc cubic system.
+    This case focuses on those shift indices that lead to the unit cell itself.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[0.5,0.5,-0.5],[-0.5,0.5,0.5],[0.5,-0.5,0.5]])
+    sites = np.array([[0.0,0.0,0.0],[0.25,0.25,0.25]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 0)
+    assert shift_indices==[(0,0,0)]
+
+def test_find_shift_indices_34() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D bcc cubic system.
+    This case focuses on those shift indices that lead to the 1NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[0.5,0.5,-0.5],[-0.5,0.5,0.5],[0.5,-0.5,0.5]])
+    sites = np.array([[0.0,0.0,0.0],[0.25,0.25,0.25]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 1)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,1,0),(0,1,1),(0,1,2),(0,2,0),
+                           (0,2,1),(0,2,2),(1,0,0),(1,0,1),(1,0,2),(1,1,0),(1,1,2),
+                           (1,2,0),(1,2,1),(1,2,2),(2,0,0),(2,0,1),(2,0,2),(2,1,0),
+                           (2,1,1),(2,1,2),(2,2,0),(2,2,1),(2,2,2)]
+
+def test_find_shift_indices_35() -> None :
+    '''
+    Tests that the method in question correctly provides the shift indices for a 3D bcc cubic system.
+    This case focuses on those shift indices that lead to the 2NN unit cells.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[0.5,0.5,-0.5],[-0.5,0.5,0.5],[0.5,-0.5,0.5]])
+    sites = np.array([[0.0,0.0,0.0],[0.25,0.25,0.25]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 2)
+    assert shift_indices==[(0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,0,4),(0,1,0),(0,1,1),(0,1,2),
+                           (0,1,3),(0,1,4),(0,2,0),(0,2,1),(0,2,2),(0,2,3),(0,2,4),(0,3,0),
+                           (0,3,1),(0,3,2),(0,3,3),(0,3,4),(0,4,0),(0,4,1),(0,4,2),(0,4,3),
+                           (0,4,4),(1,0,0),(1,0,1),(1,0,2),(1,0,3),(1,0,4),(1,1,0),(1,1,4),
+                           (1,2,0),(1,2,4),(1,3,0),(1,3,4),(1,4,0),(1,4,1),(1,4,2),(1,4,3),
+                           (1,4,4),(2,0,0),(2,0,1),(2,0,2),(2,0,3),(2,0,4),(2,1,0),(2,1,4),
+                           (2,2,0),(2,2,4),(2,3,0),(2,3,4),(2,4,0),(2,4,1),(2,4,2),(2,4,3),
+                           (2,4,4),(3,0,0),(3,0,1),(3,0,2),(3,0,3),(3,0,4),(3,1,0),(3,1,4),
+                           (3,2,0),(3,2,4),(3,3,0),(3,3,4),(3,4,0),(3,4,1),(3,4,2),(3,4,3),
+                           (3,4,4),(4,0,0),(4,0,1),(4,0,2),(4,0,3),(4,0,4),(4,1,0),(4,1,1),
+                           (4,1,2),(4,1,3),(4,1,4),(4,2,0),(4,2,1),(4,2,2),(4,2,3),(4,2,4),
+                           (4,3,0),(4,3,1),(4,3,2),(4,3,3),(4,3,4),(4,4,0),(4,4,1),(4,4,2),
+                           (4,4,3),(4,4,4)]
+
+def test_update_shell_arrays_0() -> None :
+    '''
+    Tests that the method correctly identifies the indices of the spins that are included to the same unit cell
+    as the reference spin. This case involves a 1D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 0, shift_indices, 5)
+    assert shell_indices==[1]
+
+def test_update_shell_arrays_1() -> None :
+    '''
+    Tests that the method correctly identifies the connecting vectors to the spins that are included to the same unit cell
+    as the reference spin. This case involves a 1D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 0, shift_indices, 5)
+    assert np.allclose(shell_vectors, np.array([[-0.5,0.0,0.0]]), atol=1e-10, rtol=1e-10)
+    
+def test_update_shell_arrays_2() -> None :
+    '''
+    Tests that the method correctly identifies the relative distances to the spins that are included to the same unit cell
+    as the reference spin. This case involves a 1D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 0, shift_indices, 5)
+    assert np.allclose(np.array(shell_distances), np.array([0.5]), atol=1e-10, rtol=1e-10)
+
+def test_update_shell_arrays_3() -> None :
+    '''
+    Tests that the method correctly identifies the indices of the spins that are included to the 1NN unit cells
+    as the reference spin. This case involves a 1D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 1, shift_indices, 5)
+    assert shell_indices==[0,0,1,1]
+
+def test_update_shell_arrays_4() -> None :
+    '''
+    Tests that the method correctly identifies the connecting vectors to the spins that are included to the 1NN unit cells
+    as the reference spin. This case involves a 1D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 1, shift_indices, 5)
+    assert np.allclose(np.array(shell_vectors), 
+                       np.array([[1.0,0.0,0.0],[-1.0,0.0,0.0],
+                                 [0.5,0.0,0.0],[-1.5,0.0,0.0]]), 
+                       atol=1e-10, rtol=1e-10)
+    
+def test_update_shell_arrays_5() -> None :
+    '''
+    Tests that the method correctly identifies the relative distances to the spins that are included to the 1NN unit cells
+    as the reference spin. This case involves a 1D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,10.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 1, shift_indices, 5)
+    assert np.allclose(np.array(shell_distances), np.array([1.0,1.0,0.5,1.5]), atol=1e-10, rtol=1e-10)
+
+def test_update_shell_arrays_6() -> None :
+    '''
+    Tests that the method correctly identifies the indices of the spins that are included to the same unit cell
+    as the reference spin. This case involves a 2D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 0, shift_indices, 5)
+    assert shell_indices==[1]
+
+def test_update_shell_arrays_7() -> None :
+    '''
+    Tests that the method correctly identifies the connecting vectors to the spins that are included to the same unit cell
+    as the reference spin. This case involves a 2D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 0, shift_indices, 5)
+    assert np.allclose(shell_vectors, np.array([[-0.5,0.0,0.0]]), atol=1e-10, rtol=1e-10)
+    
+def test_update_shell_arrays_8() -> None :
+    '''
+    Tests that the method correctly identifies the relative distances to the spins that are included to the same unit cell
+    as the reference spin. This case involves a 2D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 0)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 0, shift_indices, 5)
+    assert np.allclose(np.array(shell_distances), np.array([0.5]), atol=1e-10, rtol=1e-10)
+
+def test_update_shell_arrays_9() -> None :
+    '''
+    Tests that the method correctly identifies the indices of the spins that are included to the 1NN unit cells
+    as the reference spin. This case involves a 2D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 1, shift_indices, 5)
+    assert shell_indices==[0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1]
+
+def test_update_shell_arrays_10() -> None :
+    '''
+    Tests that the method correctly identifies the connecting vectors to the spins that are included to the 1NN unit cells
+    as the reference spin. This case involves a 2D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 1, shift_indices, 5)
+    assert np.allclose(np.array(shell_vectors), 
+                       np.array([[1.0,1.0,0.0],[1.0,0.0,0.0],[1.0,-1.0,0.0],[0.0,1.0,0.0],
+                                 [0.0,-1.0,0.0],[-1.0,1.0,0.0],[-1.0,0.0,0.0],[-1.0,-1.0,0.0],
+                                 [0.5,1.0,0.0],[0.5,0.0,0.0],[0.5,-1.0,0.0],[-0.5,1.0,0.0],
+                                 [-0.5,-1.0,0.0],[-1.5,1.0,0.0],[-1.5,0.0,0.0],[-1.5,-1.0,0.0]]),
+                       atol=1e-10, rtol=1e-10)
+    
+def test_update_shell_arrays_11() -> None :
+    '''
+    Tests that the method correctly identifies the relative distances to the spins that are included to the 1NN unit cells
+    as the reference spin. This case involves a 2D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,10.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    eff_latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0]])
+    shift_indices = system.find_shift_indices(eff_latt_vecs, 1)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, eff_latt_vecs, 1, shift_indices, 5)
+    assert np.allclose(np.array(shell_distances),
+                       np.array([np.sqrt(2),1.0,np.sqrt(2),1.0,1.0,np.sqrt(2),1.0,np.sqrt(2),
+                                 np.sqrt(1.25),0.5,np.sqrt(1.25),np.sqrt(1.25),np.sqrt(1.25),
+                                 np.sqrt(3.25),1.5,np.sqrt(3.25)]),
+                       atol=1e-10, rtol=1e-10)
+
+def test_update_shell_arrays_12() -> None :
+    '''
+    Tests that the method correctly identifies the indices of the spins that are included to the same unit cell
+    as the reference spin. This case involves a 3D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 0)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, latt_vecs, 0, shift_indices, 5)
+    assert shell_indices==[1]
+
+def test_update_shell_arrays_13() -> None :
+    '''
+    Tests that the method correctly identifies the connecting vectors to the spins that are included to the same unit cell
+    as the reference spin. This case involves a 3D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 0)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, latt_vecs, 0, shift_indices, 5)
+    assert np.allclose(shell_vectors, np.array([[-0.5,0.0,0.0]]), atol=1e-10, rtol=1e-10)
+    
+def test_update_shell_arrays_14() -> None :
+    '''
+    Tests that the method correctly identifies the relative distances to the spins that are included to the same unit cell
+    as the reference spin. This case involves a 3D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 0)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, latt_vecs, 0, shift_indices, 5)
+    assert np.allclose(np.array(shell_distances), np.array([0.5]), atol=1e-10, rtol=1e-10)
+
+def test_update_shell_arrays_15() -> None :
+    '''
+    Tests that the method correctly identifies the indices of the spins that are included to the 1NN unit cells
+    as the reference spin. This case involves a 3D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 1)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, latt_vecs, 1, shift_indices, 5)
+    assert shell_indices==[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+
+def test_update_shell_arrays_16() -> None :
+    '''
+    Tests that the method correctly identifies the connecting vectors to the spins that are included to the 1NN unit cells
+    as the reference spin. This case involves a 3D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs,sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 1)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, latt_vecs, 1, shift_indices, 5)
+    assert np.allclose(shell_vectors, 
+                       np.array([[1.0,1.0,1.0],[1.0,1.0,0.0],[1.0,1.0,-1.0],[1.0,0.0,1.0],
+                                 [1.0,0.0,0.0],[1.0,0.0,-1.0],[1.0,-1.0,1.0],[1.0,-1.0,0.0],
+                                 [1.0,-1.0,-1.0],[0.0,1.0,1.0],[0.0,1.0,0.0],[0.0,1.0,-1.0],
+                                 [0.0,0.0,1.0],[0.0,0.0,-1.0],[0.0,-1.0,1.0],[0.0,-1.0,0.0],
+                                 [0.0,-1.0,-1.0],[-1.0,1.0,1.0],[-1.0,1.0,0.0],[-1.0,1.0,-1.0],
+                                 [-1.0,0.0,1.0],[-1.0,0.0,0.0],[-1.0,0.0,-1.0],[-1.0,-1.0,1.0],
+                                 [-1.0,-1.0,0.0],[-1.0,-1.0,-1.0],[0.5,1.0,1.0],[0.5,1.0,0.0],
+                                 [0.5,1.0,-1.0],[0.5,0.0,1.0],[0.5,0.0,0.0],[0.5,0.0,-1.0],
+                                 [0.5,-1.0,1.0],[0.5,-1.0,0.0],[0.5,-1.0,-1.0],[-0.5,1.0,1.0],
+                                 [-0.5,1.0,0.0],[-0.5,1.0,-1.0],[-0.5,0.0,1.0],[-0.5,0.0,-1.0],
+                                 [-0.5,-1.0,1.0],[-0.5,-1.0,0.0],[-0.5,-1.0,-1.0],[-1.5,1.0,1.0],
+                                 [-1.5,1.0,0.0],[-1.5,1.0,-1.0],[-1.5,0.0,1.0],[-1.5,0.0,0.0],
+                                 [-1.5,0.0,-1.0],[-1.5,-1.0,1.0],[-1.5,-1.0,0.0],[-1.5,-1.0,-1.0]]),
+                       atol=1e-10, rtol=1e-10)
+    
+def test_update_shell_arrays_17() -> None :
+    '''
+    Tests that the method correctly identifies the relative distances to the spins that are included to the 1NN unit cells
+    as the reference spin. This case involves a 3D system with two sites.
+    '''
+    # Definition of the system
+    latt_vecs = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
+    sites = np.array([[0.0,0.0,0.0],[0.5,0.0,0.0]])
+    system = SpinSystem(latt_vecs, sites, 0.5)
+    
+    shift_indices = system.find_shift_indices(latt_vecs, 1)
+    shell_indices, shell_vectors, shell_distances = system.update_shell_arrays(0, latt_vecs, 1, shift_indices, 5)
+    assert np.allclose(np.array(shell_distances), 
+                       np.array([np.sqrt(3),np.sqrt(2),np.sqrt(3),np.sqrt(2),
+                                 1.0,np.sqrt(2),np.sqrt(3),np.sqrt(2),
+                                 np.sqrt(3),np.sqrt(2),1.0,np.sqrt(2),
+                                 1.0,1.0,np.sqrt(2),1.0,
+                                 np.sqrt(2),np.sqrt(3),np.sqrt(2),np.sqrt(3),
+                                 np.sqrt(2),1.0,np.sqrt(2),np.sqrt(3),
+                                 np.sqrt(2),np.sqrt(3),np.sqrt(2.25),np.sqrt(1.25),
+                                 np.sqrt(2.25),np.sqrt(1.25),np.sqrt(0.25),np.sqrt(1.25),
+                                 np.sqrt(2.25),np.sqrt(1.25),np.sqrt(2.25),np.sqrt(2.25),
+                                 np.sqrt(1.25),np.sqrt(2.25),np.sqrt(1.25),np.sqrt(1.25),
+                                 np.sqrt(2.25),np.sqrt(1.25),np.sqrt(2.25),np.sqrt(4.25),
+                                 np.sqrt(3.25),np.sqrt(4.25),np.sqrt(3.25),1.5,
+                                 np.sqrt(3.25),np.sqrt(4.25),np.sqrt(3.25),np.sqrt(4.25)]), 
+                       atol=1e-10, rtol=1e-10)
