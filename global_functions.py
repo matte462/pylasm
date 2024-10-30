@@ -176,7 +176,7 @@ def map_spin_correlations(
     ) -> tuple[list] :
     '''
     Maps the just obtained spin-spin correlation values to the associated NN shell, exploiting the find_NN_shell
-    method defined above.
+    method of the SpinSystem class.
     
     Args:
         system (SpinSystem): Instance of the spin system, including its main properties;
@@ -184,6 +184,10 @@ def map_spin_correlations(
         shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance;
         n_dim (int): Number of spatial dimensions of the spin system under study.
     '''
+    for ssc_mat in spin_correlations :
+        if not np.allclose(ssc_mat, ssc_mat.T, atol=1e-6, rtol=1e-6) :
+            raise ValueError('The given spin-spin correlation matrices are not symmetric as expected.')
+    
     # Target quantities
     spin_corr_data = [[],[],[],[]]
     distances = []
