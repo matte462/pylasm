@@ -1,5 +1,16 @@
 # <h1 style="text-align: center; font-size: 3em;">Changelog</h1>
 
+## 2024-10-31 Matteo Costa <mattecosta48@gmail.com>
+
+- ### global_functions.py:
+> The typing annotations are now tested using mypy module.
+
+- ### spin_system.py:
+> The typing annotations are now tested using mypy module.
+
+- ### input_reader.py:
+> The typing annotations are now tested using mypy module.
+
 ## 2024-10-29 Matteo Costa <mattecosta48@gmail.com>
 
 - ### global_functions.py (map_spin_correlations):
