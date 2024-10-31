@@ -1,5 +1,6 @@
+from typing import List, Tuple, Dict, Union, Any
+from numpy.typing import NDArray
 from global_functions import *
-
 import os
 import configparser
 import ast
@@ -16,13 +17,17 @@ class InputReader :
         Initializes a new instance of InputReader 
         and directly stores the parameters from the input files 
         into its dict attributes.
+        
+        Args:
+            config_file (str):
+                Relative path to the configuration file to set up the desired Lanczos calculation.
         '''
         self.config_file = config_file
         
         # Start reading protocol
-        self.config_info = {}
-        self.struct_info = {}
-        self.Js_info = {}
+        self.config_info: Dict[str, Dict[str,Any]] = {}
+        self.struct_info: Dict[str, NDArray[np.float64]] = {}
+        self.Js_info: Dict[str, Dict[str, Union[float,NDArray[np.float64]]]] = {}
         self.read_config_file(config_file)
         self.read_struct_file()
         self.read_J_couplings_file()
@@ -34,7 +39,8 @@ class InputReader :
         and updates the attribute self.config_info.
 
         Args:
-            config_file (str): The path to the configuration file name to be read.
+            config_file (str): 
+                Relative path to the configuration file name to be read.
         '''
         # Define permitted sections
         allowed_sections = ['STRUCTURE', 'HAMILTONIAN', 'OUTPUT']
@@ -60,10 +66,15 @@ class InputReader :
             'magn_output_mode': str,
             'show_plot': bool
         }
-        ref_dict = {
+        types_dict = {
             'STRUCTURE': struct_dict,
             'HAMILTONIAN': ham_dict,
             'OUTPUT': out_dict
+        }
+        ref_dict: Dict[str, Dict[str,Any]] = {
+            'STRUCTURE': {},
+            'HAMILTONIAN': {},
+            'OUTPUT': {}
         }
         
         # Define the default configuration
@@ -117,12 +128,14 @@ class InputReader :
         for section in allowed_sections :
             if section in config.sections() :
                 for key, value in config[section].items() :
-                    if key not in ref_dict[section].keys() :
+                    if key not in types_dict[section].keys() :
                         raise KeyError(f'{key} is not a valid {section} key.')
-                    expected_type = ref_dict[section][key]
-                    if type(ast.literal_eval(value))!=expected_type :
+                    expected_type = types_dict[section][key]
+                    eff_value = ast.literal_eval(value) 
+                    if isinstance(eff_value, expected_type) :
+                        ref_dict[section][key] = eff_value
+                    else :
                         raise TypeError(f'{key} value is not compatible with the expected type {expected_type.__name__}.')
-                    ref_dict[section][key] = ast.literal_eval(value)
         
         # Some exceptions to help the use to choose appropriate values for the input keys
         if not is_spin_acceptable(ref_dict['STRUCTURE']['spin']) : 
@@ -176,7 +189,7 @@ class InputReader :
             'mag_ions_pos': mag_ions_pos
         }
 
-    def read_POSCAR(self) -> tuple[np.ndarray] :
+    def read_POSCAR(self) -> Tuple[NDArray[np.float64], NDArray[np.float64]] :
         '''
         Returns the lattice vectors and the sites of the magnetic ions
         in case the format follows the standard conventions for POSCAR files. 
@@ -305,13 +318,13 @@ class InputReader :
             n_per_element.remove(0)
             return lattice_vectors, mag_ions_pos
     
-    def read_STRUCT(self) -> tuple[np.ndarray] : # STILL TO BE IMPLEMENTED
+    def read_STRUCT(self) -> Tuple[NDArray[np.float64], NDArray[np.float64]] : # STILL TO BE IMPLEMENTED
         pass
     
-    def read_CIF(self) -> tuple[np.ndarray] : # STILL TO BE IMPLEMENTED
+    def read_CIF(self) -> Tuple[NDArray[np.float64], NDArray[np.float64]] : # STILL TO BE IMPLEMENTED
         pass
     
-    def read_PWI(self) -> tuple[np.ndarray] : # STILL TO BE IMPLEMENTED
+    def read_PWI(self) -> Tuple[NDArray[np.float64], NDArray[np.float64]] : # STILL TO BE IMPLEMENTED
         pass
 
     def read_J_couplings_file(self) -> None :
@@ -394,11 +407,11 @@ class InputReader :
                                         raise TypeError(f'{el} is read in the {current_row+1}-th line in {J_couplings_file}, while a coordinate is expected.')
                                 
                                 # Rescale T vectors into Angstrom units of length
-                                vector = np.dot(np.array([float(el) for el in vector]),0.529177249)
-                                T_vectors.append(vector)
+                                true_vector = np.array([float(el)*0.529177249 for el in vector])
+                                T_vectors.append(true_vector)
 
                                 # Save the length of the current T vector
-                                squares = [el**2 for el in vector]
+                                squares = [el**2 for el in true_vector]
                                 norm = np.sqrt(np.array(squares).sum())
                                 distances.append(norm)
 
@@ -512,7 +525,7 @@ class InputReader :
         '''
         return self.config_info['HAMILTONIAN']['shell_digits']
     
-    def get_B_field(self) -> np.ndarray :
+    def get_B_field(self) -> NDArray[np.float64] :
         '''
         Returns the 3D vector for the applied magnetic field B
         within the coordinate system of the spin quantization axis.
@@ -553,43 +566,47 @@ class InputReader :
         '''
         return self.config_info['OUTPUT']['show_plot']
     
-    def get_lattice_vectors(self) -> np.ndarray :
+    def get_lattice_vectors(self) -> NDArray[np.float64] :
         '''
         Returns the lattice vectors read from the structure file.
         '''
         return self.struct_info['lattice_vectors']
     
-    def get_mag_ions_pos(self) -> np.ndarray :
+    def get_mag_ions_pos(self) -> NDArray[np.float64] :
         '''
         Returns the atomic positions of the magnetic elements in the system read from the structure file.
         '''
         return self.struct_info['mag_ions_pos']
     
-    def get_J_couplings(self) -> list[list] :
+    def get_J_couplings(self) -> List[List[NDArray[np.float64]]] :
         '''
         Returns a list of the interaction matrices stored in the Js_info after the reading procedure.
         Each element in the list contains all the interaction matrices of the corresponding NN shell.
         '''
         Js = self.Js_info
-        matrices = []
-        for section in Js.keys() :
+        matrices: List[List[NDArray[np.float64]]] = []
+        for shell in Js.values() :
                 matrices.append([])
-                for mat in Js[section]['J_matrices'].values() :
-                    matrices[-1].append(mat)
+                if isinstance(shell, dict) :
+                    if isinstance(shell['J_matrices'], dict) :
+                        for mat in shell['J_matrices'].values() :
+                            matrices[-1].append(mat)
         return matrices
 
-    def get_T_vectors(self) -> list[list] :
+    def get_T_vectors(self) -> List[List[NDArray[np.float64]]] :
         '''
         Returns a list of the T vectors connecting NN atoms. They are organized in groups for each NN shell
         and  their order cannot be changed since they are in a 1-1 mapping with the interaction matrices 
         given by the get_J_couplings() method. 
         '''
         Js = self.Js_info
-        vectors = []
-        for section in Js.keys() :
+        vectors: List[List[NDArray[np.float64]]] = []
+        for shell in Js.values() :
                 vectors.append([])
-                for vec in Js[section]['T_vectors'].values() :
-                    vectors[-1].append(vec)
+                if isinstance(shell, dict) :
+                    if isinstance(shell['T_vectors'], dict) :
+                        for vec in shell['T_vectors'].values() :
+                            vectors[-1].append(vec)
         return vectors
 
     def print_summary(self) -> None :

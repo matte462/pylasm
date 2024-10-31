@@ -1,3 +1,5 @@
+from typing import List, Tuple, Dict, Union
+from numpy.typing import NDArray
 from spin_system import SpinSystem
 from types import TracebackType
 import numpy as np
@@ -12,9 +14,12 @@ def log_exception(exc_type: type[BaseException], exc_value: BaseException, exc_t
     Logs the details of raised Exceptions to a TXT file named SPIN_REPORT.txt.
     
     Args:
-        exc_type (type[BaseException): Type of the just raised Exception;
-        exc_value (BaseException): Instance of the just raised Exception;
-        exc_traceback (traceback.TracebackType): Traceback of the just raised Exception.
+        exc_type (type[BaseException): 
+            Type of the just raised Exception;
+        exc_value (BaseException): 
+            Instance of the just raised Exception;
+        exc_traceback (traceback.TracebackType): 
+            Traceback of the just raised Exception.
     '''
     with open('SPIN_REPORT.txt', 'a') as error_file :
         traceback.print_exception(exc_type, exc_value, exc_traceback, file=error_file)
@@ -38,12 +43,13 @@ def print_logo() -> None :
     print(r"   \ ")
     print("###############################################################")
 
-def clean_line(raw_line: str) -> list[str] :
+def clean_line(raw_line: str) -> List[str] :
     '''
     Removes all the empty spaces and the newline character, useful when reading text files.
 
     Args:
-        raw_line (str): String containing the info to be extracted.
+        raw_line (str): 
+            String containing the info to be extracted.
     '''
     line_content = raw_line.split(sep=' ')
 
@@ -69,7 +75,7 @@ def is_spin_acceptable(spin_trial: float) -> bool :
     else :
         return False
     
-def adapt_magintmatrix(matrix: np.ndarray) -> np.ndarray :
+def adapt_magintmatrix(matrix: NDArray[np.float64]) -> NDArray[np.float64] :
     '''
     Adapts the input matrix from the MagInt conventional representation to the stamdard one.
     Example:    [Jyy, Jyz, Jyx]             [Jxx, Jxy, Jxz]
@@ -77,7 +83,8 @@ def adapt_magintmatrix(matrix: np.ndarray) -> np.ndarray :
                 [Jxy, Jxz, Jxx]             [Jzx, Jzy, Jzz]
     
     Args:
-        matrix (np.ndarray): Interaction matrix as written into the J couplings file.
+        matrix (np.ndarray): 
+            Interaction matrix as written into the J couplings file.
     '''
     if matrix.shape!=(3,3) :
         raise ValueError('The adapt_magintmatrix function only accepts 3x3 square matrices as argument.')
@@ -89,15 +96,22 @@ def adapt_magintmatrix(matrix: np.ndarray) -> np.ndarray :
     
     return new_matrix
 
-def solve_by_lanczos(hamiltonian: np.ndarray, n_excited: int, lanczos_digits: int) -> tuple :
+def solve_by_lanczos(
+        hamiltonian: NDArray[np.complex64], 
+        n_excited: int, 
+        lanczos_digits: int
+    ) -> Tuple[NDArray[np.complex128], NDArray[np.float64], int] :
     '''
     Performs Lanczos algorithm until the whole ground-state eigenspace and the requested excited eigenstates are identified,
     meaning both the eigenvectors and the associated eigenenergies. The excited states' counting takes into account degeneracies.
     
     Args:
-        hamiltonian (np.ndarray): Hermitian Hamiltonian matrix of the composite spin system;
-        n_excited (int): Number of excited manifolds to be computed;
-        lanczos_digits (int): Number of Lanczos energy digits to be taken into account.
+        hamiltonian (NDArray[np.complex128]): 
+            Hermitian Hamiltonian matrix of the composite spin system;
+        n_excited (int): 
+            Number of excited manifolds to be computed;
+        lanczos_digits (int): 
+            Number of Lanczos energy digits to be taken into account.
     '''
     print('\nPerforming the Lanczos algorithm...')
     
@@ -107,6 +121,7 @@ def solve_by_lanczos(hamiltonian: np.ndarray, n_excited: int, lanczos_digits: in
     # Loop over the number of eigenstates to be determined by Lanczos algorithm
     n = 2
     excited_count = 0
+    lanczos_results = []
     while excited_count<=n_excited :
         
         # Perform Lanczos algorithm to determine the lowest n energy eigenstates
@@ -121,15 +136,21 @@ def solve_by_lanczos(hamiltonian: np.ndarray, n_excited: int, lanczos_digits: in
             # Save the ground-state degeneracy
             if GS_deg==0 :
                 GS_deg = n-1
+            
+            # Collect the latest results
+            lanczos_results.append((states[:,:-1], energies[:-1]))
         
-        # Stop the loop if the Lanczos algorithm has estimated all the eigenstates of the highest-energy eigenspace
-        if excited_count==n_excited+1 :
-            print('The Lanczos algorithm has converged successfully.')
-            return states[:,:-1], energies[:-1], GS_deg
-
         n += 1
+        
+    print('The Lanczos algorithm has converged successfully.')
+    return lanczos_results[-1][0], lanczos_results[-1][1], GS_deg
 
-def save_data(energies: np.ndarray, spin_correlations: tuple[np.ndarray], magnetization: float) -> None :
+
+def save_data(
+        energies: NDArray[np.float64], 
+        spin_correlations: Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]], 
+        magnetization: float
+    ) -> None :
     '''
     Saves all the relevant data about the just performed Lanczos aloìgorithm, as well as
     the spin-spin correlation values and the magnetization.
@@ -137,14 +158,17 @@ def save_data(energies: np.ndarray, spin_correlations: tuple[np.ndarray], magnet
     called SPIN_OUT.json.
     
     Args:
-        energies (np.ndarray): Tuple containing the eigenenergies approximated by the Lanczos algorithm;
-        spin_correlations (tuple): Tuple of the spin-spin correlation matrices, the indices specify the associated spin pair;
-        magnetization (float): Modulus of the magnetization vector.
+        energies (NDArray[np.float64]): 
+            Array containing the eigenenergies approximated by the Lanczos algorithm;
+        spin_correlations (Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]): 
+            Tuple of the spin-spin correlation matrices, the indices specify the associated spin pair;
+        magnetization (float): 
+            Modulus of the magnetization vector.
     '''
     print('\nSaving data...')
     
     # Initialize a dictionary collecting all the relevant data
-    data_dict = {
+    data_dict: Dict[str, Union[List[float], Dict[str, Dict[str,float]], float]] = {
         'Lanczos Energies': [float(np.real(e)) for e in energies.tolist()],
         'Spin-Spin Corr. Matrices': {
             'X components': {},
@@ -159,9 +183,11 @@ def save_data(energies: np.ndarray, spin_correlations: tuple[np.ndarray], magnet
     for n in range(spin_correlations[0].shape[0]) :
         for m in range(spin_correlations[0].shape[0]) :
             i = 0
-            for key in data_dict['Spin-Spin Corr. Matrices'].keys() :
-                data_dict['Spin-Spin Corr. Matrices'][key][f'Spins {n}-{m}'] = spin_correlations[i][n][m]
-                i += 1
+            for outer_key, outer_val in data_dict.items() :
+                if isinstance(outer_val, dict) :
+                    for inner_key, inner_val in outer_val.items() :
+                        inner_val[f'Spins {n}-{m}'] = spin_correlations[i][n][m]
+                        i += 1
     
     # Write the data into a JSON file
     with open('SPIN_OUT.json', 'w') as file :
@@ -170,26 +196,30 @@ def save_data(energies: np.ndarray, spin_correlations: tuple[np.ndarray], magnet
 
 def map_spin_correlations(
         system: SpinSystem,
-        spin_correlations: tuple[np.ndarray],
+        spin_correlations: Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]],
         shell_digits: int,
         n_dim: int
-    ) -> tuple[list] :
+    ) -> Tuple[List[List[float]], List[float]] :
     '''
     Maps the just obtained spin-spin correlation values to the associated NN shell, exploiting the find_NN_shell
     method of the SpinSystem class.
     
     Args:
-        system (SpinSystem): Instance of the spin system, including its main properties;
-        spin_correlations (tuple[np.ndarray]): Tuple of the spin-spin correlation matrices, the indices specify the associated spin pair;
-        shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance;
-        n_dim (int): Number of spatial dimensions of the spin system under study.
+        system (SpinSystem): 
+            Instance of the spin system, including its main properties;
+        spin_correlations (Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]): 
+            Tuple of the spin-spin correlation matrices, the indices specify the associated spin pair;
+        shell_digits (int): 
+            Number of digits to be considered during the identification of the NN shells by distance;
+        n_dim (int): 
+            Number of spatial dimensions of the spin system under study.
     '''
     for ssc_mat in spin_correlations :
         if not np.allclose(ssc_mat, ssc_mat.T, atol=1e-6, rtol=1e-6) :
             raise ValueError('The given spin-spin correlation matrices are not symmetric as expected.')
     
     # Target quantities
-    spin_corr_data = [[],[],[],[]]
+    spin_corr_data: List[List[float]] = [[],[],[],[]]
     distances = []
     
     # First element represents the "on-site" spin-spin correlation
@@ -207,7 +237,7 @@ def map_spin_correlations(
         # Store the spin-spin correlation of the current NN shell
         for i in range(4) :
             spin_corr_data[i].append(spin_correlations[i][0][shell_indices[0]])
-        distances.append(np.linalg.norm(shell_vectors[0]))
+        distances.append(float(np.linalg.norm(shell_vectors[0])))
         
         # Break the cycle just after any replica of spin 0 is found
         if shell_indices.count(0)!=0 :
@@ -219,7 +249,7 @@ def map_spin_correlations(
 
 def plot_data(
         system: SpinSystem,
-        spin_correlations: tuple[np.ndarray],
+        spin_correlations: Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]],
         magnetization: float,
         shell_digits: int,
         n_dim: int
@@ -229,11 +259,16 @@ def plot_data(
     of the spin pair they are refered to. The resulting magnetization modulus is also reported as an horizontal line.
       
     Args:
-        system (SpinSystem): Physical system under study, in order to have an easier access to its properties;
-        spin_correlations (tuple[np.ndarray]): Tuple of the spin-spin correlation matrices, the indices specify the associated spin pair;
-        magnetization (float): Modulus of the magnetization vector;
-        shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance;
-        n_dim (int): Number of spatial dimensions of the spin system under study.
+        system (SpinSystem): 
+            Physical system under study, in order to have an easier access to its properties;
+        spin_correlations (Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]): 
+            Tuple of the spin-spin correlation matrices, the indices specify the associated spin pair;
+        magnetization (float): 
+            Modulus of the magnetization vector;
+        shell_digits (int): 
+            Number of digits to be considered during the identification of the NN shells by distance;
+        n_dim (int): 
+            Number of spatial dimensions of the spin system under study.
     '''
     print('\nPlotting data...')
     

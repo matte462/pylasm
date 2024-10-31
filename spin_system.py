@@ -1,3 +1,5 @@
+from typing import List, Tuple
+from numpy.typing import NDArray
 import numpy as np
 from scipy.linalg import ishermitian
 
@@ -9,14 +11,17 @@ class SpinSystem() :
     hamiltonian matrix so as to proceed with the exact diagonalization (ED) algorithm. 
     '''
 
-    def __init__(self, latt_vecs: np.ndarray, sites: np.ndarray, spin: float) :
+    def __init__(self, latt_vecs: NDArray[np.float64], sites: NDArray[np.float64], spin: float) :
         '''
         Initializes a new instance of SpinSystem.
         
         Args:
-            latt_vecs (np.ndarray): Set of 3 lattice vectors defining the periodic boundary conditions;
-            sites (np.ndarray): Finite set of atomic positions of the spins in the system;
-            spin (float): Spin quantum number.
+            latt_vecs (NDArray[np.float64]):
+                Set of 3 lattice vectors defining the periodic boundary conditions;
+            sites (NDArray[np.float64]):
+                Finite set of atomic positions of the spins in the system;
+            spin (float): 
+                Spin quantum number.
         '''
         from global_functions import is_spin_acceptable
         if latt_vecs.shape[0]!=3 :
@@ -43,15 +48,17 @@ class SpinSystem() :
         '''
         return int(2*self.spin+1)
     
-    def find_shift_indices(self, eff_latt_vecs: np.ndarray, n_uc_shell: int) -> list[tuple] :
+    def find_shift_indices(self, eff_latt_vecs: NDArray[np.float64], n_uc_shell: int) -> List[Tuple[int, ...]] :
         '''
         Allows the user to access the NN unit cells of the system. In order to identify the translational operation that brings
         the (arbitrary) central unit cell into the NN ones of interest, the method returns tuples of integers specifying the how many 
         times the associated lattice vector should be added while computing the translational vector.
         
         Args:
-            eff_latt_vecs (np.ndarray): Array for the effective lattice vectors of the system, and their number depends on the dimensionality;
-            n_uc_shell (int): Index for the NN unit cells of interest.
+            eff_latt_vecs (NDArray[np.float64]): 
+                Array for the effective lattice vectors of the system, and their number depends on the dimensionality;
+            n_uc_shell (int): 
+                Index for the NN unit cells of interest.
         
         Example:
             Consider the shift_indices tuple (n1, n2) and the effective lattice vectors a1, a2. The associated translational vector reads as
@@ -91,11 +98,11 @@ class SpinSystem() :
     def update_shell_arrays(
             self, 
             ref_spin: int, 
-            eff_latt_vecs: np.ndarray, 
+            eff_latt_vecs: NDArray[np.float64], 
             n_uc_shell: int, 
-            shift_indices: list[tuple],
+            shift_indices: List[Tuple[int, ...]],
             shell_digits: int
-        ) -> tuple[list] :
+        ) -> Tuple[List[int], List[NDArray[np.float64]], List[float]] :
         '''
         Allows to identify and characterize the NN spins of a reference spin by applying all possible shift vectors 
         within a given set of adjacent unit cells to all the magnetic sites of the system. For each NN bond, it stores: 
@@ -129,11 +136,16 @@ class SpinSystem() :
         |. ʘ = arrow towards higher a-b planes
          
         Args:
-            ref_spin (int): The index of the reference spin, whose NN shells are the target of this method;
-            eff_latt_vecs (np.ndarray): Array for the effective lattice vectors of the system, and their number depends on the dimensionality;
-            n_uc_shell (int): Index for the NN unit cells of interest;
-            shift_indices (list[tuple]): List of all the shift indices to access the NN unit cells of interest;
-            shell_digits (int): Number of digits to be considered during the identification of the NN shells by distanc.
+            ref_spin (int): 
+                Index of the reference spin, whose NN shells are the target of this method;
+            eff_latt_vecs (NDArray[np.float64]): 
+                Array for the effective lattice vectors of the system, and their number depends on the dimensionality;
+            n_uc_shell (int): 
+                Index for the NN unit cells of interest;
+            shift_indices (List[Tuple[int, ...]]): 
+                List of all the shift indices to access the NN unit cells of interest;
+            shell_digits (int): 
+                Number of digits to be considered during the identification of the NN shells by distanc.
         
         Note:
             The elements of the lists within the returning tuple are univocally associated to a NN bond, so their order is relevant.
@@ -163,8 +175,8 @@ class SpinSystem() :
                 # Apply the current shift
                 for d in range(n_dim) :
                     replica_site += np.dot(eff_latt_vecs[d],s_ind[d])
-                distance_vec = ref_site-replica_site
-                distance = np.linalg.norm(distance_vec)
+                distance_vec = np.array(ref_site-replica_site, dtype=float)
+                distance = float(np.linalg.norm(distance_vec))
 
                 # Save the results if the relative distance is significantly non-vanishing
                 if np.round(distance, shell_digits)!=0.0 :
@@ -184,7 +196,7 @@ class SpinSystem() :
             n_shell: int,
             shell_digits: int,
             n_dim: int
-        ) -> tuple[list] :
+        ) -> Tuple[List[int], List[NDArray[np.float64]]] :
         '''
         Returns a tuple of two arrays, which contain the indices of all the spins belonging to the specified NN shell
         of the reference spin and the associated connecting vectors respectively. The basic idea is to take the 
@@ -194,10 +206,14 @@ class SpinSystem() :
         In case of low-dimensional systems, only the smallest lattice vectors are used to perform the shifts.
         
         Args:
-            ref_spin (int): The index of the reference spin, whose NN shells are the target of this method;
-            n_shell (int): Indicator of the NN shell of interest;
-            shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance;
-            n_dim (int): Number of spatial dimensions of the spin system under study.
+            ref_spin (int): 
+                Index of the reference spin, whose NN shells are the target of this method;
+            n_shell (int): 
+                Indicator of the NN shell of interest;
+            shell_digits (int): 
+                Number of digits to be considered during the identification of the NN shells by distance;
+            n_dim (int): 
+                Number of spatial dimensions of the spin system under study.
         '''
         Nspins = self.get_Nspins()
         latt_vecs = self.latt_vecs
@@ -246,7 +262,9 @@ class SpinSystem() :
             # Accept the results only if the length scale of the initial shift is higher than
             # the presumed shell distance
             if len(distances_aux)>=n_shell :
-                if min([np.linalg.norm(np.dot(vec, n_uc_shell)) for vec in eff_latt_vecs])>distances_aux[n_shell-1] :
+                length_scales = np.array([np.linalg.norm(np.dot(vec, n_uc_shell)) for vec in eff_latt_vecs])
+                min_length_scale = length_scales.min()
+                if float(min_length_scale)>distances_aux[n_shell-1] :
                     shell_distance = distances_aux[n_shell-1]
                     is_shell_found = True
             
@@ -262,7 +280,7 @@ class SpinSystem() :
         
         return final_shell_indices, final_shell_vectors
 
-    def build_spin_operator(self) -> np.ndarray :
+    def build_spin_operator(self) -> NDArray[np.complex128] :
         '''
         Returns the local spin vector operator associated with the magnetic sites of the system.
         It is strictly related to the chosen spin quantum number, which indeed sets the dimension
@@ -272,9 +290,9 @@ class SpinSystem() :
         spin_mult = self.get_spin_mult()
 
         # Construction of spin operators
-        S_x = np.zeros((spin_mult, spin_mult), dtype=complex) 
-        S_y = np.zeros((spin_mult, spin_mult), dtype=complex)
-        S_z = np.zeros((spin_mult, spin_mult), dtype=complex)
+        S_x = np.zeros((spin_mult, spin_mult), dtype=np.complex128) 
+        S_y = np.zeros((spin_mult, spin_mult), dtype=np.complex128)
+        S_z = np.zeros((spin_mult, spin_mult), dtype=np.complex128)
         for a in range(1,spin_mult+1) :
             for b in range(1,spin_mult+1) :
                 S_x[a-1][b-1] = complex(0.5*(a==b+1 or a+1==b) * np.sqrt((spin+1)*(a+b-1) - a*b))
@@ -285,27 +303,34 @@ class SpinSystem() :
 
     def build_hamiltonian(
             self,
-            J_couplings: list[list],
-            NN_vectors: list[list],
+            J_couplings: List[List[NDArray[np.float64]]],
+            NN_vectors: List[List[NDArray[np.float64]]],
             max_NN_shell: int,
             shell_digits: int,
-            B_field: np.ndarray,
+            B_field: NDArray[np.float64],
             n_dim: int,
             tol_imag: float
-        ) -> np.ndarray :
+        ) -> NDArray[np.complex128] :
         '''
         Returns the Hamiltonian matrix for the interacting spin system.
         As mentioned below, the order of the elements in the provided arrays is important,
         since the i-th J matrix specifically corresponds to the i-th NN vector.
 
         Args:
-            J_couplings (list[list]): Ordered set of 3x3 intersite exchange matrices;
-            NN_vectors (list[list]): Ordered set of 3D NN vectors;
-            max_NN_shell (int): The highest NN shell to be considered when computing the spin-spin interactions;
-            shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance;
-            B_field (np.ndarray): 3D vector for the external homogeneous magnetic field;
-            n_dim (int): Number of spatial dimensions of the spin system under study;
-            tol_imag (float): Tolerance on the imaginary part of Hamiltonian matrix elements.
+            J_couplings (List[List[NDArray[np.float64]]]): 
+                Ordered set of 3x3 intersite exchange matrices;
+            NN_vectors (List[List[NDArray[np.float64]]]): 
+                Ordered set of 3D NN vectors;
+            max_NN_shell (int): 
+                The highest NN shell to be considered when computing the spin-spin interactions;
+            shell_digits (int): 
+                Number of digits to be considered during the identification of the NN shells by distance;
+            B_field (NDArray[np.float64]): 
+                3D vector for the external homogeneous magnetic field;
+            n_dim (int): 
+                Number of spatial dimensions of the spin system under study;
+            tol_imag (float): 
+                Tolerance on the imaginary part of Hamiltonian matrix elements.
         '''
         print('\nThe spin Hamiltonian is being defined...')
         
@@ -315,7 +340,7 @@ class SpinSystem() :
 
         # Initialize the Spin Hamiltonian matrix
         dim = spin_mult**Nspins
-        H = np.zeros((dim, dim), dtype=complex)
+        H = np.zeros((dim, dim), dtype=np.complex128)
 
         # Loop over all permitted NN Shells
         for nn in range(1, max_NN_shell+1) :
@@ -355,19 +380,23 @@ class SpinSystem() :
     
     def compute_J_eff(
             self,
-            J_couplings: list[list],
-            NN_vectors: list[list],
-            vector: np.ndarray,
+            J_couplings: List[NDArray[np.float64]],
+            NN_vectors: List[NDArray[np.float64]],
+            vector: NDArray[np.float64],
             shell_digits: int
-        ) -> np.ndarray :
+        ) -> NDArray[np.float64] :
         '''
         Returns the effective exchange interaction tensor associated with a specific NN vector.
 
         Args:
-            J_couplings (list[list]): Ordered set of 3x3 intersite exchange matrices (only for a specific NN shell);
-            NN_vectors (list[list]): Ordered set of 3D NN vectors (only for a specific NN shell);
-            vector (np.ndarray): 3D vector to be found among the NN vectors;
-            shell_digits (int): Number of digits to be considered during the identification of the NN shells by distance.
+            J_couplings (List[NDArray[np.float64]]): 
+                Ordered set of 3x3 intersite exchange matrices (only for a specific NN shell);
+            NN_vectors (List[NDArray[np.float64]]): 
+                Ordered set of 3D NN vectors (only for a specific NN shell);
+            vector (NDArray[np.float64]): 
+                3D vector to be found among the NN vectors;
+            shell_digits (int): 
+                Number of digits to be considered during the identification of the NN shells by distance.
         '''
         # Initialize the J matrix
         J_eff = np.zeros((3,3))
@@ -385,19 +414,17 @@ class SpinSystem() :
         
         return J_eff
     
-    def compute_pair_interaction(
-            self,
-            first: int,
-            second: int,
-            J_eff: np.ndarray
-        ) -> np.ndarray :
+    def compute_pair_interaction(self, first: int, second: int, J_eff: NDArray[np.float64]) -> NDArray[np.complex128] :
         '''
         Returns the contribution of a single pair to the global spin Hamiltonian matrix.
 
         Args:
-            first (int): Index for the first spin within the pair;
-            second (int): Index for the second spin within the pair;
-            J_eff (np.ndarray): 3x3 real matrix for the effective intersite exchange interaction between the pair.
+            first (int): 
+                Index for the first spin within the pair;
+            second (int): 
+                Index for the second spin within the pair;
+            J_eff (NDArray[np.float64]): 
+                3x3 real matrix for the effective intersite exchange interaction between the pair.
         '''
         Nspins = self.get_Nspins()
         spin_mult = self.get_spin_mult()
@@ -405,7 +432,7 @@ class SpinSystem() :
 
         # Initialize the interaction term between the two spins
         matrix_size = spin_mult**(second-first+1)
-        interaction_term = np.zeros((matrix_size, matrix_size), dtype=complex)
+        interaction_term = np.zeros((matrix_size, matrix_size), dtype=np.complex128)
 
         # Loop over all the spatial coordinates (twice)
         for a in range(3) :
@@ -424,11 +451,11 @@ class SpinSystem() :
     
     def compute_spin_correlation(
             self,
-            states: np.ndarray,
+            states: NDArray[np.complex128],
             GS_deg: int,
             first: int,
             second: int
-        ) -> np.ndarray :
+        ) -> NDArray[np.float64] :
         '''
         Returns the spin-spin correlation between the two chosen magnetic sites. It is indeed obtained 
         by calculating the expectation value of the scalar product of the associated spin operators.
@@ -436,10 +463,14 @@ class SpinSystem() :
         the two spins within the sequence.
         
         Args:
-            states (np.ndarray): Orthonormal column eigenstates of the spin Hamiltonian;
-            GS_deg (int): Ground-state degeneracy;
-            first (int): Index of the first magnetic site;
-            second (int): Index of the second magnetic site.
+            states (NDArray[np.complex128]): 
+                Orthonormal column eigenstates of the spin Hamiltonian;
+            GS_deg (int): 
+                Ground-state degeneracy;
+            first (int): 
+                Index of the first magnetic site;
+            second (int): 
+                Index of the second magnetic site.
         
         Note:
             It actually returns a 1D array of size 3 with the expectation values of the Sx*Sx, Sy*Sy and Sz*Sz
@@ -458,7 +489,7 @@ class SpinSystem() :
             
             # Initialize the spin-spin scalar product operator
             aux_size = spin_mult**(abs(second-first) + 1)
-            initial_product = np.zeros((aux_size, aux_size), dtype=complex)
+            initial_product = np.zeros((aux_size, aux_size), dtype=np.complex128)
             if second!=first :
                 aux_size = spin_mult**(abs(second-first) - 1)
                 initial_product = np.kron(np.kron(S_vec[i], np.eye(aux_size)), S_vec[i])
@@ -475,7 +506,11 @@ class SpinSystem() :
             
         return corr_vec
 
-    def compute_all_spin_correlations(self, states: np.ndarray, GS_deg: int) -> tuple[np.ndarray] :
+    def compute_all_spin_correlations(
+            self, 
+            states: NDArray[np.complex128], 
+            GS_deg: int
+        ) -> Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]] :
         '''
         Returns all the inequivalent spin-spin correlation values of the system in question
         by cycling over all the available spin pairs. 
@@ -484,8 +519,10 @@ class SpinSystem() :
         identity), which is thus a mere constant (i.e. S*(S+1)).
         
         Args:
-            states (np.ndarray): Orthonormal column eigenstates of the spin Hamiltonian;
-            GS_deg (int): Ground-state degeneracy.
+            states (NDArray[np.float64]): 
+                Orthonormal column eigenstates of the spin Hamiltonian;
+            GS_deg (int): 
+                Ground-state degeneracy.
         '''
         Nspins = self.get_Nspins()
         spin = self.spin
@@ -518,21 +555,19 @@ class SpinSystem() :
         
         return spin_corr_xs, spin_corr_ys, spin_corr_zs, spin_corr_vals
 
-    def compute_magnetization(
-            self,
-            states: np.ndarray,
-            GS_deg: int,
-            magn_output_mode: str
-        ) -> float :
+    def compute_magnetization(self, states: NDArray[np.complex128], GS_deg: int, magn_output_mode: str) -> float :
         '''
         Returns the magnetization modulus of the composite spin system as proportional to the expectation value of
         the sum of all the spin-spin scalar product operators. The definition of such scalar products depends on the chosen
         string for the magn_output_mode variable. See example for clarity.
         
         Args:
-            states (np.ndarray): Orthonormal column eigenstates of the spin Hamiltonian;
-            GS_deg (int): Ground-state degeneracy;
-            magn_output_mode (str): String literal to select the definiton of the output magnetization.
+            states (NDArray[np.complex128]): 
+                Orthonormal column eigenstates of the spin Hamiltonian;
+            GS_deg (int): 
+                Ground-state degeneracy;
+            magn_output_mode (str): 
+                String literal to select the definiton of the output magnetization.
         
         Example:
             If magn_output_mode='M_z', then only the Sz-Sz correlation values are actually targeted
@@ -552,7 +587,7 @@ class SpinSystem() :
         states = states.T
         
         # Target quantity
-        M2_operator = np.zeros((spin_mult**Nspins, spin_mult**Nspins), dtype=complex)
+        M2_operator = np.zeros((spin_mult**Nspins, spin_mult**Nspins), dtype=np.complex128)
         
         # Choose which spin-spin correlations will contribute to the computation of the magnetization
         selected_coords = {'M_x': [0],'M_y': [1],'M_z': [2],'M_full': [0,1,2]}
@@ -566,10 +601,10 @@ class SpinSystem() :
             
                     # Initialize the spin-spin scalar product operator
                     aux_size = spin_mult**(m-n+1)
-                    initial_product = np.zeros((aux_size, aux_size), dtype=complex)
+                    initial_product = np.zeros((aux_size, aux_size), dtype=np.complex128)
                     if n!=m :
                         aux_size = spin_mult**(m-n-1)
-                        initial_product = 2*np.kron(np.kron(S_vec[i], np.eye(aux_size)), S_vec[i])
+                        initial_product = np.complex128(2.0)*np.kron(np.kron(S_vec[i], np.eye(aux_size)), S_vec[i])
                     else :
                         initial_product = S_vec[i] @ S_vec[i]
             
