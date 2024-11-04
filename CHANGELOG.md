@@ -1,5 +1,10 @@
 # <h1 style="text-align: center; font-size: 3em;">Changelog</h1>
 
+## 2024-11-04 Matteo Costa <mattecosta48@gmail.com>
+
+- ### test_spin_system.py:
+> I have now implemented 5 new pytest fixtures in order to avoid useless repetitions of code blocks within the test functions.
+
 ## 2024-10-31 Matteo Costa <mattecosta48@gmail.com>
 
 - ### global_functions.py:
